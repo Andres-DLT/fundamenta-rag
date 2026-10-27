@@ -7,6 +7,7 @@ on:
 
 jobs:
   test:
+    name: Pruebas (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,15 +23,44 @@ jobs:
           cache: pip
 
       - name: Instalar dependencias
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,claude]"
 
-      - name: Lint
+      - name: Análisis estático
         run: |
           ruff check .
           ruff format --check .
 
-      - name: Tests
+      - name: Pruebas
+        run: pytest -m "not semantic"
+
+  integration:
+    name: Integración (modelo de embeddings y cuadernos)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias (PyTorch para CPU)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev,semantic,claude]"
+
+      - name: Caché del modelo de embeddings
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-multilingual-e5-small
+
+      - name: Pruebas completas
         run: pytest
 
-      - name: Ejecutar notebooks
-        run: pytest --nbmake chapters/
+      - name: Ejecutar cuadernos
+        run: pytest --nbmake modulos/
+
+      - name: Evaluación de recuperación
+        run: fundamenta eval --embedder semantic

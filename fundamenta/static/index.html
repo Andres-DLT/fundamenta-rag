@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fundamenta · Asistente de conocimiento</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --border: #e2e5ea;
+    --text: #1b2430;
+    --muted: #5b6676;
+    --accent: #1f4e79;
+    --accent-soft: #e8eff7;
+    --success: #2f6b4f;
+    --warning: #8a5a12;
+    --radius: 10px;
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11161d;
+      --surface: #1a212b;
+      --border: #2c3542;
+      --text: #e6eaf0;
+      --muted: #9aa6b6;
+      --accent: #7fb0e0;
+      --accent-soft: #1f2d3d;
+      --success: #7cc4a0;
+      --warning: #e0b66a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.55; }
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 14px 24px; display: flex; align-items: center; gap: 12px;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 1.1rem; }
+  .brand small { font-weight: 400; color: var(--muted); font-size: .9rem; }
+  .status { margin-left: auto; color: var(--muted); font-size: .82rem; text-align: right; }
+  main { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; }
+  h1 { font-size: 1.45rem; margin: 0 0 6px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  form { display: flex; gap: 10px; }
+  textarea {
+    flex: 1; resize: vertical; min-height: 52px; max-height: 200px; padding: 12px 14px;
+    font: inherit; color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button.primary {
+    padding: 0 20px; font: inherit; font-weight: 600; color: #fff; background: var(--accent);
+    border: 0; border-radius: var(--radius); cursor: pointer;
+  }
+  @media (prefers-color-scheme: dark) { button.primary { color: #0e1620; } }
+  button.primary:disabled { opacity: .55; cursor: progress; }
+  .examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+  .examples button {
+    font: inherit; font-size: .85rem; padding: 5px 11px; color: var(--accent);
+    background: var(--accent-soft); border: 0; border-radius: 999px; cursor: pointer;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; margin-top: 22px;
+  }
+  .card h2 { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  .answer { white-space: pre-wrap; }
+  .badge { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
+  .badge.generative { color: var(--success); border: 1px solid var(--success); }
+  .badge.extractive, .badge.none { color: var(--warning); border: 1px solid var(--warning); }
+  .cite {
+    font: inherit; font-size: .75rem; font-weight: 600; vertical-align: super; line-height: 1;
+    padding: 1px 5px; margin: 0 1px; color: var(--accent); background: var(--accent-soft);
+    border: 0; border-radius: 4px; cursor: pointer;
+  }
+  .source { border-top: 1px solid var(--border); padding: 12px 0 4px; }
+  .source:first-of-type { border-top: 0; padding-top: 0; }
+  .source.highlight { background: var(--accent-soft); border-radius: 6px; padding: 10px 12px; }
+  .source-head { display: flex; gap: 10px; align-items: baseline; }
+  .source-num { font-weight: 700; color: var(--accent); }
+  .source-label { font-weight: 600; }
+  .source-score { margin-left: auto; color: var(--muted); font-size: .8rem; white-space: nowrap; }
+  details summary { cursor: pointer; color: var(--muted); font-size: .85rem; margin-top: 4px; }
+  details pre { white-space: pre-wrap; font: inherit; font-size: .9rem; margin: 8px 0 0; color: var(--text); }
+  .error { color: #b3261e; }
+  footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 24px; }
+  @media (max-width: 600px) {
+    header { padding: 12px 16px; }
+    .status { display: none; }
+    form { flex-direction: column; }
+    button.primary { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+      <rect x="2" y="18" width="24" height="7" rx="1.5" fill="currentColor" opacity=".9"/>
+      <rect x="6" y="10" width="16" height="6" rx="1.5" fill="currentColor" opacity=".6"/>
+      <rect x="10" y="3" width="8" height="5" rx="1.5" fill="currentColor" opacity=".35"/>
+    </svg>
+    <span>Fundamenta <small>· Asistente de conocimiento</small></span>
+  </div>
+  <div class="status" id="status">Conectando…</div>
+</header>
+
+<main>
+  <h1>Consulte la documentación</h1>
+  <p class="lead" id="lead">Las respuestas se basan exclusivamente en la documentación indexada e indican la fuente de cada afirmación.</p>
+
+  <form id="form">
+    <textarea id="question" placeholder="Escriba su pregunta…" maxlength="2000" required></textarea>
+    <button class="primary" id="submit" type="submit">Consultar</button>
+  </form>
+  <div class="examples" id="examples"></div>
+
+  <section class="card" id="answer-card" hidden>
+    <h2>Respuesta</h2>
+    <span class="badge" id="mode"></span>
+    <div class="answer" id="answer"></div>
+  </section>
+
+  <section class="card" id="sources-card" hidden>
+    <h2>Fuentes consultadas</h2>
+    <div id="sources"></div>
+  </section>
+</main>
+
+<footer>Fundamenta · Motor RAG con respuestas fundamentadas y citas verificables</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const MODES = {
+    generative: "Respuesta generada a partir de las fuentes",
+    extractive: "Modo extractivo: fragmentos literales, sin LLM",
+    none: "Sin resultados en la documentación",
+  };
+
+  async function loadHealth() {
+    try {
+      const health = await (await fetch("/api/health")).json();
+      const retrieval = { lexical: "léxica", semantic: "semántica", hybrid: "híbrida" };
+      const generation = { extractive: "modo extractivo", ClaudeLLM: "Claude", OllamaLLM: "Ollama" };
+      $("status").textContent = [
+        health.organization,
+        `${health.chunks} fragmentos`,
+        `búsqueda ${retrieval[health.retrieval] || health.retrieval}`,
+        generation[health.generation] || health.generation,
+      ].join(" · ");
+      for (const example of health.examples) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = example;
+        button.addEventListener("click", () => { $("question").value = example; ask(); });
+        $("examples").appendChild(button);
+      }
+    } catch {
+      $("status").textContent = "Servidor no disponible";
+    }
+  }
+
+  function renderAnswer(text) {
+    const container = $("answer");
+    container.replaceChildren();
+    for (const part of text.split(/(\[\d+\])/)) {
+      const match = part.match(/^\[(\d+)\]$/);
+      if (match) {
+        const cite = document.createElement("button");
+        cite.className = "cite";
+        cite.type = "button";
+        cite.textContent = match[1];
+        cite.title = "Ver fuente";
+        cite.addEventListener("click", () => highlightSource(match[1]));
+        container.appendChild(cite);
+      } else {
+        container.appendChild(document.createTextNode(part));
+      }
+    }
+  }
+
+  function highlightSource(number) {
+    document.querySelectorAll(".source").forEach((el) => el.classList.remove("highlight"));
+    const target = document.querySelector(`.source[data-number="${number}"]`);
+    if (target) {
+      target.classList.add("highlight");
+      target.querySelector("details").open = true;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  function renderSources(sources) {
+    const container = $("sources");
+    container.replaceChildren();
+    for (const source of sources) {
+      const item = document.createElement("div");
+      item.className = "source";
+      item.dataset.number = source.number;
+      const head = document.createElement("div");
+      head.className = "source-head";
+      const num = Object.assign(document.createElement("span"), { className: "source-num", textContent: `[${source.number}]` });
+      const label = Object.assign(document.createElement("span"), { className: "source-label", textContent: source.label });
+      const score = Object.assign(document.createElement("span"), { className: "source-score", textContent: `relevancia ${source.score.toFixed(3)}` });
+      head.append(num, label, score);
+      const details = document.createElement("details");
+      details.append(
+        Object.assign(document.createElement("summary"), { textContent: "Ver fragmento" }),
+        Object.assign(document.createElement("pre"), { textContent: source.text }),
+      );
+      item.append(head, details);
+      container.appendChild(item);
+    }
+    $("sources-card").hidden = sources.length === 0;
+  }
+
+  async function ask() {
+    const question = $("question").value.trim();
+    if (!question) return;
+    $("submit").disabled = true;
+    $("submit").textContent = "Consultando…";
+    try {
+      const response = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error desconocido");
+      const mode = $("mode");
+      mode.className = `badge ${data.mode}`;
+      mode.textContent = MODES[data.mode] || data.mode;
+      renderAnswer(data.answer);
+      renderSources(data.sources);
+      $("answer-card").hidden = false;
+    } catch (error) {
+      $("answer").replaceChildren(Object.assign(document.createElement("span"), { className: "error", textContent: error.message }));
+      $("mode").textContent = "";
+      $("answer-card").hidden = false;
+      $("sources-card").hidden = true;
+    } finally {
+      $("submit").disabled = false;
+      $("submit").textContent = "Consultar";
+    }
+  }
+
+  $("form").addEventListener("submit", (event) => { event.preventDefault(); ask(); });
+  $("question").addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); ask(); }
+  });
+  loadHealth();
+
+  // Permite compartir enlaces a una consulta: /?q=pregunta
+  const initialQuestion = new URLSearchParams(location.search).get("q");
+  if (initialQuestion) {
+    $("question").value = initialQuestion;
+    ask();
+  }
+</script>
+</body>
+</html>

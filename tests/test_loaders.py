@@ -2,7 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from rag.loaders import load_directory, load_document, load_markdown, load_pdf, load_text, normalize
+from fundamenta.loaders import (
+    load_directory,
+    load_document,
+    load_markdown,
+    load_pdf,
+    load_text,
+    normalize,
+)
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data" / "novatech"
 

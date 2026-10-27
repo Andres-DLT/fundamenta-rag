@@ -3,33 +3,44 @@ requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "build-a-rag-from-scratch"
-version = "0.1.0"
-description = "Aprende a construir un sistema RAG desde cero, pieza a pieza y sin frameworks."
+name = "fundamenta"
+version = "1.0.0"
+description = "Motor RAG construido desde cero: respuestas fundamentadas en la documentación de su organización, con citas verificables."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
 authors = [{ name = "Andres-DLT" }]
-keywords = ["rag", "llm", "embeddings", "retrieval", "search", "tutorial"]
-# Cada capítulo añade solo las dependencias que necesita.
+keywords = ["rag", "llm", "embeddings", "bm25", "retrieval", "knowledge-base", "search"]
 dependencies = [
-    "pypdf>=4.0",  # cap. 01: leer PDFs
+    "numpy>=1.26",  # álgebra vectorial (módulos 04 y 05)
+    "pypdf>=4.0",   # lectura de PDF (módulo 01)
 ]
 
 [project.optional-dependencies]
+# Embeddings semánticos con un modelo multilingüe local (módulo 04)
+semantic = ["sentence-transformers>=3.0"]
+# Generación con Claude, de Anthropic (módulo 07)
+claude = ["anthropic>=2.3"]
+notebooks = ["jupyterlab>=4.0"]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",
     "nbmake>=1.5",
     "ipykernel>=6.29",
 ]
-notebooks = ["jupyterlab>=4.0"]
+all = ["fundamenta[semantic,claude,notebooks,dev]"]
+
+[project.scripts]
+fundamenta = "fundamenta.cli:main"
 
 [project.urls]
-Repository = "https://github.com/Andres-DLT/build-a-rag-from-scratch"
+Repository = "https://github.com/Andres-DLT/fundamenta-rag"
 
 [tool.setuptools]
-packages = ["rag"]
+packages = ["fundamenta"]
+
+[tool.setuptools.package-data]
+fundamenta = ["static/*"]
 
 [tool.ruff]
 line-length = 100
@@ -39,8 +50,9 @@ target-version = "py311"
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.per-file-ignores]
-# En los notebooks priorizamos que los ejemplos se lean de un vistazo
+# En los notebooks se prioriza que los ejemplos se lean de un vistazo
 "*.ipynb" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["semantic: requiere el extra [semantic] y descarga un modelo de embeddings"]

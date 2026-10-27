@@ -1,0 +1,30 @@
+{"id": "D01", "category": "directa", "question": "¿Cuántos días de vacaciones al año tiene cada persona?", "source": "manual-del-empleado.md", "evidence": ["23 días laborables"], "answer_contains": ["23"]}
+{"id": "D02", "category": "directa", "question": "¿Con cuánta antelación hay que solicitar las vacaciones?", "source": "manual-del-empleado.md", "evidence": ["de antelación"], "answer_contains": ["15"]}
+{"id": "D03", "category": "directa", "question": "¿Cuál es la dieta diaria para un viaje de trabajo en España?", "source": "politica-de-gastos-y-viajes.md", "evidence": ["45 €"], "answer_contains": ["45"]}
+{"id": "D04", "category": "directa", "question": "¿Cuál es el precio máximo por noche de hotel en ciudades españolas?", "source": "politica-de-gastos-y-viajes.md", "evidence": ["140 €"], "answer_contains": ["140"]}
+{"id": "D05", "category": "directa", "question": "¿Cuánto cuesta el plan Growth de NovaDesk por agente?", "source": "productos-y-precios.md", "evidence": ["39 €"], "answer_contains": ["39"]}
+{"id": "D06", "category": "directa", "question": "¿Cada cuánto caducan las contraseñas?", "source": "faq-soporte-it.txt", "evidence": ["180 días"], "answer_contains": ["180"]}
+{"id": "D07", "category": "directa", "question": "¿Cuál es el presupuesto anual de formación por persona?", "source": "beneficios-2026.pdf", "evidence": ["1.200 €"], "answer_contains": ["1.200"]}
+{"id": "D08", "category": "directa", "question": "¿Cuántos días de permiso hay por mudanza?", "source": "manual-del-empleado.md", "evidence": ["Mudanza", "2 días laborables"], "answer_contains": ["2 días"]}
+{"id": "D09", "category": "directa", "question": "¿Qué descuento se aplica con facturación anual?", "source": "productos-y-precios.md", "evidence": ["20 %"], "answer_contains": ["20"]}
+{"id": "D10", "category": "directa", "question": "¿Cuánto se reembolsa por kilómetro si uso mi vehículo propio?", "source": "politica-de-gastos-y-viajes.md", "evidence": ["0,26 €"], "answer_contains": ["0,26"]}
+{"id": "D11", "category": "directa", "question": "¿Cuál es el horario de atención del equipo de IT?", "source": "faq-soporte-it.txt", "evidence": ["8:00 a 18:00"], "answer_contains": ["8:00", "18:00"]}
+{"id": "D12", "category": "directa", "question": "¿Cuánto cuesta NovaBot?", "source": "productos-y-precios.md", "evidence": ["0,40 €"], "answer_contains": ["0,40"]}
+{"id": "D13", "category": "directa", "question": "¿Cuál es el tiempo de primera respuesta del soporte en el plan Enterprise?", "source": "productos-y-precios.md", "evidence": ["1 hora"], "answer_contains": ["1 hora"]}
+{"id": "D14", "category": "directa", "question": "¿Cuál es el límite de reembolso en comidas con clientes?", "source": "politica-de-gastos-y-viajes.md", "evidence": ["60 € por persona"], "answer_contains": ["60"]}
+{"id": "D15", "category": "directa", "question": "¿Cuántos días presenciales a la semana exige el modelo híbrido?", "source": "manual-del-empleado.md", "evidence": ["2 días presenciales"], "answer_contains": ["2"]}
+{"id": "P01", "category": "parafraseada", "question": "Me han robado el laptop, ¿qué tengo que hacer?", "source": "faq-soporte-it.txt", "evidence": ["bloqueará el equipo"], "answer_contains": ["900 000 111"]}
+{"id": "P02", "category": "parafraseada", "question": "¿Cuánto tiempo libre me corresponde al año para descansar?", "source": "manual-del-empleado.md", "evidence": ["23 días laborables"], "answer_contains": ["23"]}
+{"id": "P03", "category": "parafraseada", "question": "¿Ayuda la empresa con los gastos de deporte?", "source": "beneficios-2026.pdf", "evidence": ["30 € al mes"], "answer_contains": ["30"]}
+{"id": "P04", "category": "parafraseada", "question": "¿Puedo trabajar desde casa?", "source": "manual-del-empleado.md", "evidence": ["híbrido"], "answer_contains": ["2"]}
+{"id": "P05", "category": "parafraseada", "question": "¿Qué pasa con mis datos si dejo de ser cliente?", "source": "productos-y-precios.md", "evidence": ["60 días"], "answer_contains": ["60"]}
+{"id": "P06", "category": "parafraseada", "question": "¿Cuántos días libres me dan si me caso?", "source": "manual-del-empleado.md", "evidence": ["Matrimonio", "15 días naturales"], "answer_contains": ["15"]}
+{"id": "P07", "category": "parafraseada", "question": "¿Puedo pegar información de clientes en un chatbot como ChatGPT?", "source": "faq-soporte-it.txt", "evidence": ["aprobadas en el catálogo de IT"], "answer_contains": ["aprobadas"]}
+{"id": "P08", "category": "parafraseada", "question": "¿Qué ordenador me darán si entro en el equipo de diseño?", "source": "faq-soporte-it.txt", "evidence": ["MacBook Pro"], "answer_contains": ["MacBook Pro"]}
+{"id": "P09", "category": "parafraseada", "question": "¿Me cubren la consulta del dentista?", "source": "beneficios-2026.pdf", "evidence": ["atención dental"], "answer_contains": ["dental"]}
+{"id": "P10", "category": "parafraseada", "question": "¿Cuándo me suben el sueldo?", "source": "manual-del-empleado.md", "evidence": ["revisión salarial"], "answer_contains": ["enero"]}
+{"id": "P11", "category": "parafraseada", "question": "¿Hay algún premio por recomendar a un conocido para un puesto?", "source": "beneficios-2026.pdf", "evidence": ["2.000 €"], "answer_contains": ["2.000"]}
+{"id": "P12", "category": "parafraseada", "question": "¿Qué asiento me toca en un vuelo de ocho horas?", "source": "politica-de-gastos-y-viajes.md", "evidence": ["turista premium"], "answer_contains": ["premium"]}
+{"id": "N01", "category": "sin_respuesta", "question": "¿Cuál es el salario medio de la plantilla?"}
+{"id": "N02", "category": "sin_respuesta", "question": "¿Se pueden llevar mascotas a la oficina?"}
+{"id": "N03", "category": "sin_respuesta", "question": "¿A cuánto cotizan las acciones de la empresa?"}

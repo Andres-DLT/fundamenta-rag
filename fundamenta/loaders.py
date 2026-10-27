@@ -1,4 +1,4 @@
-"""Capítulo 01: cargar documentos.
+"""Módulo 01: ingesta de documentos.
 
 Convierte archivos (.txt, .md y .pdf) en objetos `Document` con su texto y sus
 metadatos. Los metadatos (archivo de origen, página...) son los que más adelante nos
