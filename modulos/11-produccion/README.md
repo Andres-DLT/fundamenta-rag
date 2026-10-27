@@ -26,6 +26,9 @@ flowchart LR
     end
 ```
 
+La [guía de despliegue](../../docs/despliegue.md) describe cómo publicar la versión de
+demostración con Docker o Hugging Face Spaces.
+
 ## Escalado
 
 | Componente | Demostración (Fundamenta) | Producción |

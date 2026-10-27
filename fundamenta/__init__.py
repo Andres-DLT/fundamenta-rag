@@ -13,7 +13,7 @@ from fundamenta.loaders import Document, load_directory, load_document
 from fundamenta.pipeline import PipelineConfig, RAGPipeline
 from fundamenta.retriever import Retriever, SearchResult
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "Answer",

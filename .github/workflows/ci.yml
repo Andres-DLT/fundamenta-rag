@@ -64,3 +64,26 @@ jobs:
 
       - name: Evaluación de recuperación
         run: fundamenta eval --embedder semantic
+
+  docker:
+    name: Imagen Docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Construir la imagen
+        run: docker build -t fundamenta .
+
+      - name: Arrancar y comprobar
+        run: |
+          docker run -d --name fundamenta -p 7860:7860 -e FUNDAMENTA_PASSWORD=ci fundamenta
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:7860/api/health && break; sleep 2; done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7860/)" = "401"
+          curl -sf -u visitante:ci -H "Content-Type: application/json" \
+            -d '{"question": "¿Cuántos días de vacaciones tengo?"}' \
+            http://127.0.0.1:7860/api/ask | grep -q "23 días laborables"
+
+      - name: Registro del contenedor
+        if: always()
+        run: docker logs fundamenta || true

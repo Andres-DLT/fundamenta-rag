@@ -141,7 +141,7 @@
 
   async function loadHealth() {
     try {
-      const health = await (await fetch("/api/health")).json();
+      const health = await (await fetch(new URL("/api/health", location.origin))).json();
       const retrieval = { lexical: "léxica", semantic: "semántica", hybrid: "híbrida" };
       const generation = { extractive: "modo extractivo", ClaudeLLM: "Claude", OllamaLLM: "Ollama" };
       $("status").textContent = [
@@ -221,7 +221,7 @@
     $("submit").disabled = true;
     $("submit").textContent = "Consultando…";
     try {
-      const response = await fetch("/api/ask", {
+      const response = await fetch(new URL("/api/ask", location.origin), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),

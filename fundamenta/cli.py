@@ -4,11 +4,16 @@ fundamenta ask "¿Cuántos días de vacaciones tengo?"
 fundamenta search "dietas en viajes" --k 3
 fundamenta serve --port 8000
 fundamenta eval --embedder semantic
+
+Las opciones principales también se pueden fijar con variables de entorno, lo que
+facilita el despliegue en contenedores: FUNDAMENTA_DATA, FUNDAMENTA_EMBEDDER,
+FUNDAMENTA_LLM, FUNDAMENTA_PASSWORD, FUNDAMENTA_RATE_LIMIT y PORT.
 """
 
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 
@@ -62,7 +67,14 @@ def cmd_serve(args: argparse.Namespace) -> None:
 
     pipeline = build_pipeline(args)
     examples = DEMO_EXAMPLES if Path(args.data).name == "novatech" else []
-    serve(pipeline, host=args.host, port=args.port, examples=examples)
+    serve(
+        pipeline,
+        host=args.host,
+        port=args.port,
+        examples=examples,
+        password=args.password or None,
+        rate_limit=args.rate_limit,
+    )
 
 
 def cmd_eval(args: argparse.Namespace) -> None:
@@ -104,15 +116,20 @@ def make_parser() -> argparse.ArgumentParser:
         description="Motor RAG: respuestas fundamentadas en su documentación, con citas.",
     )
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--data", default="data/novatech", help="carpeta de documentos")
+    env = os.environ.get
+    common.add_argument(
+        "--data", default=env("FUNDAMENTA_DATA", "data/novatech"), help="carpeta de documentos"
+    )
     common.add_argument(
         "--embedder",
-        default="lsa",
+        default=env("FUNDAMENTA_EMBEDDER", "lsa"),
         choices=["lsa", "semantic", "none"],
         help="lsa: sin descargas; semantic: modelo multilingüe (extra [semantic])",
     )
     common.add_argument(
-        "--llm", default="none", help="none (extractivo), claude[:modelo] u ollama[:modelo]"
+        "--llm",
+        default=env("FUNDAMENTA_LLM", "none"),
+        help="none (extractivo), claude[:modelo] u ollama[:modelo]",
     )
     common.add_argument("--mode", default="hybrid", choices=["lexical", "semantic", "hybrid"])
     common.add_argument("--k", type=int, default=4, help="fragmentos a recuperar")
@@ -131,7 +148,18 @@ def make_parser() -> argparse.ArgumentParser:
 
     serve = commands.add_parser("serve", parents=[common], help="arrancar la demo web")
     serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--port", type=int, default=int(env("PORT", "8000")))
+    serve.add_argument(
+        "--password",
+        default=env("FUNDAMENTA_PASSWORD"),
+        help="contraseña de acceso (recomendado si el servidor es público)",
+    )
+    serve.add_argument(
+        "--rate-limit",
+        type=int,
+        default=int(env("FUNDAMENTA_RATE_LIMIT", "30")),
+        help="preguntas por minuto y cliente",
+    )
     serve.set_defaults(func=cmd_serve)
 
     evaluate = commands.add_parser("eval", parents=[common], help="evaluar la calidad")

@@ -73,8 +73,17 @@ fragmento original de cada fuente y su puntuación de relevancia. Se adapta al m
 claro u oscuro del sistema y a pantallas móviles.
 
 El servidor valida la longitud de las preguntas y no expone detalles internos en los
-errores. Está pensado para demostraciones y entornos internos; el módulo 11 describe
-los requisitos para un despliegue en producción (autenticación, HTTPS, límites de uso).
+errores. Para publicarlo en internet incorpora dos protecciones:
+
+- `--password` (o `FUNDAMENTA_PASSWORD`): contraseña de acceso mediante autenticación
+  HTTP Basic, para que solo accedan las personas invitadas.
+- `--rate-limit` (o `FUNDAMENTA_RATE_LIMIT`): número máximo de preguntas por minuto y
+  cliente, que acota el consumo del proveedor del modelo.
+
+La [guía de despliegue](../../docs/despliegue.md) explica cómo publicarlo con Docker o
+Hugging Face Spaces, y el módulo 11 describe los requisitos adicionales de un despliegue
+corporativo (autenticación con el proveedor de identidad, control de acceso por
+documento, registro de consultas).
 
 ## Ejercicios propuestos
 

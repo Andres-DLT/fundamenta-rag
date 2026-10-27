@@ -1,5 +1,6 @@
 """Tests de los módulos 08 y 09: pipeline, servidor web, CLI y evaluación."""
 
+import base64
 import json
 import threading
 import urllib.error
@@ -204,3 +205,79 @@ def test_judge_faithfulness():
     assert judge_faithfulness(FakeLLM("SÍ"), answer)
     assert not judge_faithfulness(FakeLLM("NO"), answer)
     assert judge_faithfulness(FakeLLM("NO"), Answer("?", NO_ANSWER))
+
+
+# --- Módulo 08: protección del servidor ---------------------------------------------
+
+
+def test_check_password():
+    from fundamenta.server import check_password
+
+    good = "Basic " + base64.b64encode(b"cliente:secreto").decode()
+    bad = "Basic " + base64.b64encode(b"cliente:otra").decode()
+
+    assert check_password(good, "secreto")
+    assert not check_password(bad, "secreto")
+    assert not check_password(None, "secreto")
+    assert not check_password("Basic no-es-base64!", "secreto")
+
+
+def test_rate_limiter():
+    from fundamenta.server import RateLimiter
+
+    limiter = RateLimiter(limit=2, window=60)
+
+    assert limiter.allow("a") and limiter.allow("a")
+    assert not limiter.allow("a")
+    assert limiter.allow("b")
+
+
+@pytest.fixture(scope="module")
+def protected_url(pipeline):
+    server = create_server(pipeline, port=0, password="secreto", rate_limit=2)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+    server.server_close()
+
+
+def _request(url: str, password: str | None = None, payload: dict | None = None) -> int:
+    headers = {"Content-Type": "application/json"}
+    if password:
+        headers["Authorization"] = "Basic " + base64.b64encode(f"x:{password}".encode()).decode()
+    data = json.dumps(payload).encode() if payload is not None else None
+    try:
+        with urllib.request.urlopen(
+            urllib.request.Request(url, data=data, headers=headers), timeout=10
+        ) as response:
+            return response.status
+    except urllib.error.HTTPError as error:
+        return error.code
+
+
+def test_protected_server_requires_password(protected_url):
+    assert _request(protected_url + "/") == 401
+    assert _request(protected_url + "/", password="incorrecta") == 401
+    assert _request(protected_url + "/", password="secreto") == 200
+    assert _request(protected_url + "/api/health") == 200
+
+
+def test_protected_server_limits_questions(protected_url):
+    question = {"question": "¿Vacaciones?"}
+
+    assert _request(protected_url + "/api/ask", "secreto", question) == 200
+    assert _request(protected_url + "/api/ask", "secreto", question) == 200
+    assert _request(protected_url + "/api/ask", "secreto", question) == 429
+
+
+def test_cli_reads_settings_from_environment(monkeypatch):
+    from fundamenta.cli import make_parser
+
+    monkeypatch.setenv("FUNDAMENTA_LLM", "ollama:llama3")
+    monkeypatch.setenv("FUNDAMENTA_PASSWORD", "secreto")
+    monkeypatch.setenv("PORT", "7860")
+
+    args = make_parser().parse_args(["serve"])
+
+    assert (args.llm, args.password, args.port) == ("ollama:llama3", "secreto", 7860)

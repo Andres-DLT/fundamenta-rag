@@ -4,12 +4,12 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fundamenta"
-version = "1.0.0"
+version = "1.1.0"
 description = "Motor RAG construido desde cero: respuestas fundamentadas en la documentación de su organización, con citas verificables."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
-authors = [{ name = "Andres-DLT" }]
+authors = [{ name = "Andrés de la Torre Flores" }]
 keywords = ["rag", "llm", "embeddings", "bm25", "retrieval", "knowledge-base", "search"]
 dependencies = [
     "numpy>=1.26",  # álgebra vectorial (módulos 04 y 05)
@@ -22,6 +22,8 @@ semantic = ["sentence-transformers>=3.0"]
 # Generación con Claude, de Anthropic (módulo 07)
 claude = ["anthropic>=2.3"]
 notebooks = ["jupyterlab>=4.0"]
+# Despliegue en Hugging Face Spaces (scripts/deploy_huggingface.py)
+deploy = ["huggingface_hub>=1.0"]
 dev = [
     "pytest>=8.0",
     "ruff>=0.6",

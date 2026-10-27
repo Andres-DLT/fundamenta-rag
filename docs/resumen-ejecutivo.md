@@ -123,4 +123,6 @@ de resultados antes de la puesta en producción.
 
 ---
 
+**Andrés de la Torre Flores** · Autor de Fundamenta
+
 Más información técnica: [repositorio del proyecto](https://github.com/Andres-DLT/fundamenta-rag)

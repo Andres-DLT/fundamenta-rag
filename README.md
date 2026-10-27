@@ -83,6 +83,12 @@ fundamenta serve --embedder semantic --llm ollama:qwen2.5:7b
 Para usar su propia documentación, indique la carpeta con `--data` (formatos admitidos:
 PDF, Markdown y texto).
 
+## Despliegue
+
+Fundamenta incluye un `Dockerfile` listo para producción y un script de despliegue en
+Hugging Face Spaces. La aplicación admite contraseña de acceso y límite de preguntas por
+cliente. Consulte la [guía de despliegue](docs/despliegue.md).
+
 ## Uso como librería
 
 ```python
@@ -165,13 +171,15 @@ fundamenta-rag/
 ├── data/novatech/           Caso de estudio: documentación de una empresa ficticia
 ├── evaluacion/              Conjunto de preguntas de referencia
 ├── tests/                   Pruebas automatizadas
-└── docs/                    Documentación para clientes
+├── docs/                    Documentación para clientes y guía de despliegue
+├── scripts/                 Script de despliegue en Hugging Face Spaces
+└── Dockerfile               Imagen de producción
 ```
 
 ## Calidad
 
-- 80 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web
-  y la integración con los proveedores de modelos.
+- 85 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
+  su protección de acceso y la integración con los proveedores de modelos.
 - Integración continua en GitHub Actions: análisis estático, pruebas en Python 3.11,
   3.12 y 3.13, y ejecución de todos los cuadernos con el modelo de embeddings real.
 
@@ -184,8 +192,13 @@ ruff check . && pytest && pytest --nbmake modulos/
 
 - [Resumen ejecutivo](docs/resumen-ejecutivo.md): propuesta de valor, casos de uso y
   modalidades de implantación.
+- [Despliegue](docs/despliegue.md): Docker, Hugging Face Spaces y configuración.
 - [Puesta en producción](modulos/11-produccion/README.md): arquitectura de referencia,
   seguridad y costes.
+
+## Autor
+
+**Andrés de la Torre Flores** · [github.com/Andres-DLT](https://github.com/Andres-DLT)
 
 ## Licencia
 
