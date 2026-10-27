@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "build-a-rag-from-scratch"
+version = "0.1.0"
+description = "Aprende a construir un sistema RAG desde cero, pieza a pieza y sin frameworks."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [{ name = "Andres-DLT" }]
+keywords = ["rag", "llm", "embeddings", "retrieval", "search", "tutorial"]
+# Cada capítulo añade solo las dependencias que necesita.
+dependencies = [
+    "pypdf>=4.0",  # cap. 01: leer PDFs
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "nbmake>=1.5",
+    "ipykernel>=6.29",
+]
+notebooks = ["jupyterlab>=4.0"]
+
+[project.urls]
+Repository = "https://github.com/Andres-DLT/build-a-rag-from-scratch"
+
+[tool.setuptools]
+packages = ["rag"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# En los notebooks priorizamos que los ejemplos se lean de un vistazo
+"*.ipynb" = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

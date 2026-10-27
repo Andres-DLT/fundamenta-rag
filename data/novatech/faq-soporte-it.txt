@@ -1,0 +1,45 @@
+PREGUNTAS FRECUENTES DE SOPORTE IT - NOVATECH (empresa ficticia)
+Última actualización: septiembre de 2026
+
+¿Cómo contacto con el equipo de IT?
+Abre un ticket en el portal interno it.novatech.example o escribe en el canal de Slack
+#it-ayuda. El horario de atención es de lunes a viernes de 8:00 a 18:00 (hora de Madrid).
+Para incidencias urgentes fuera de horario llama a la guardia de IT al 900 000 111.
+
+¿Cada cuánto tengo que cambiar mi contraseña?
+Las contraseñas caducan cada 180 días. Deben tener al menos 14 caracteres y no pueden
+repetir ninguna de las últimas 5 contraseñas. La autenticación en dos pasos (2FA) es
+obligatoria para todas las cuentas.
+
+¿Qué hago si olvido mi contraseña?
+Ve a login.novatech.example y pulsa "He olvidado mi contraseña". Recibirás un enlace
+en tu móvil registrado. Si tampoco tienes acceso al móvil, abre un ticket desde el
+ordenador de un compañero o llama a la guardia de IT.
+
+¿Cómo me conecto a la VPN?
+Instala el cliente NovaConnect desde el Centro de Software de tu portátil e inicia
+sesión con tu cuenta corporativa. La VPN es necesaria para acceder a los sistemas
+internos (NovaHR, NovaExpense, repositorios de código) cuando no estás en la oficina.
+
+¿Qué portátil me corresponde?
+El equipo de ingeniería y diseño recibe un MacBook Pro de 14 pulgadas. El resto de
+equipos recibe un portátil Lenovo ThinkPad T14. Los portátiles se renuevan cada 4 años.
+
+¿Puedo instalar software por mi cuenta?
+Solo desde el Centro de Software. Si necesitas una herramienta que no aparece en el
+catálogo, solicítala con un ticket indicando para qué la necesitas. IT la revisa en
+un plazo de 5 días laborables.
+
+¿Qué hago si pierdo el portátil o me lo roban?
+Avisa a IT de inmediato llamando a la guardia (900 000 111), aunque sea fuera de
+horario. IT bloqueará el equipo y cerrará tus sesiones en remoto. En caso de robo
+también debes presentar una denuncia y subirla al ticket.
+
+¿Puedo usar herramientas de IA generativa con datos de la empresa?
+Sí, pero solo las aprobadas en el catálogo de IT, que tienen acuerdos de
+confidencialidad con NovaTech. Nunca pegues datos de clientes ni código fuente en
+herramientas de IA que no estén aprobadas.
+
+¿Cómo solicito acceso a un sistema nuevo?
+Pide a tu responsable que apruebe la solicitud en el portal de IT. Los accesos se
+conceden en un máximo de 2 días laborables desde la aprobación.

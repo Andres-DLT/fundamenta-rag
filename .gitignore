@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Entornos virtuales
+.venv/
+venv/
+
+# Secretos (API keys del capítulo 07 en adelante)
+.env
+
+# Herramientas
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Índices generados por el sistema RAG
+.rag_cache/
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
