@@ -24,7 +24,7 @@ from fundamenta.bm25 import BM25Index
 from fundamenta.chunking import chunk_documents, contextualize
 from fundamenta.embeddings import Embedder
 from fundamenta.generation import Answer, AnswerGenerator
-from fundamenta.llm import LLM, LLMError, get_llm
+from fundamenta.llm import LLM, LLMError, default_llm_name, get_llm
 from fundamenta.loaders import Document, load_directory
 from fundamenta.pipeline import PipelineConfig
 from fundamenta.retriever import SearchResult
@@ -156,7 +156,7 @@ class GenerationService:
         default_organization = "NovaTech" if data.name == "novatech" else "la organización"
         return cls(
             chunks=load_chunks(data),
-            llm=get_llm(os.environ.get("FUNDAMENTA_LLM", "claude")),
+            llm=get_llm(os.environ.get("FUNDAMENTA_LLM") or default_llm_name()),
             password=os.environ.get("FUNDAMENTA_PASSWORD", ""),
             organization=os.environ.get("FUNDAMENTA_ORGANIZATION", default_organization),
             rate_limit=int(os.environ.get("FUNDAMENTA_RATE_LIMIT", "20")),

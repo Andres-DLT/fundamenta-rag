@@ -24,7 +24,7 @@ y con código ejecutable, cada componente del sistema.
 | **Abstención controlada** | Si la documentación no contiene la respuesta, el sistema lo indica en lugar de inventar. |
 | **Búsqueda híbrida** | Combina búsqueda léxica (BM25) y semántica multilingüe para entender preguntas formuladas con otras palabras. |
 | **Datos bajo control** | Los embeddings se calculan en local y la generación puede realizarse con modelos en infraestructura propia. |
-| **Independencia del proveedor** | Claude (Anthropic), cualquier modelo abierto vía Ollama o modo extractivo sin LLM. |
+| **Independencia del proveedor** | Claude (Anthropic), Gemini (Google), OpenAI, cualquier API compatible, modelos abiertos vía Ollama o modo extractivo sin LLM. |
 | **Control de acceso** | Filtros por metadatos para que cada usuario consulte solo lo que está autorizado a ver. |
 | **Calidad medible** | Evaluación integrada con métricas de recuperación y de respuesta. |
 | **Dependencias mínimas** | Núcleo basado en NumPy y pypdf; servidor web con la librería estándar. |
@@ -90,8 +90,8 @@ Fundamenta se puede desplegar de varias formas, todas con contraseña de acceso 
 de preguntas por cliente:
 
 - **Versión web gratuita**: la búsqueda se ejecuta en el navegador del visitante y las
-  respuestas las redacta Claude a través de una función sin servidor. Se publica en
-  GitHub Pages y Vercel.
+  respuestas las redacta un LLM (Claude, Gemini…) a través de una función sin servidor.
+  Se publica en GitHub Pages y Vercel.
 - **Servidor ligero**: configuración para Render (`render.yaml`) que funciona en su plan
   gratuito, con el modelo de embeddings cuantizado.
 - **Imagen Docker** para cualquier plataforma de contenedores o Hugging Face Spaces.
@@ -190,7 +190,7 @@ fundamenta-rag/
 
 ## Calidad
 
-- 109 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
+- 115 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
   la función de generación, su protección de acceso y la integración con los
   proveedores de modelos.
 - Integración continua en GitHub Actions: análisis estático, pruebas en Python 3.11,

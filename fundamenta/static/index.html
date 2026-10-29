@@ -226,7 +226,7 @@
     try {
       const health = await backend.health();
       const retrieval = { lexical: "léxica", semantic: "semántica", hybrid: "híbrida" };
-      const generation = { extractive: "modo extractivo", ClaudeLLM: "Claude", OllamaLLM: "Ollama" };
+      const generation = { extractive: "modo extractivo", remote: "respuestas con IA", ClaudeLLM: "Claude", OllamaLLM: "Ollama" };
       statusLine = [
         health.organization,
         `${health.chunks} fragmentos`,

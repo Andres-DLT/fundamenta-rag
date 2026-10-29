@@ -100,7 +100,11 @@ def create_server(
         "organization": pipeline.config.organization,
         "chunks": len(pipeline.chunks),
         "retrieval": pipeline.mode,
-        "generation": type(pipeline.llm).__name__ if pipeline.llm else "extractive",
+        "generation": (
+            getattr(pipeline.llm, "label", type(pipeline.llm).__name__)
+            if pipeline.llm
+            else "extractive"
+        ),
         "examples": examples or [],
     }
 

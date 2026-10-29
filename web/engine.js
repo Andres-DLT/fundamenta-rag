@@ -192,7 +192,7 @@
         organization: index.organization,
         chunks: index.chunks.length,
         retrieval: "hybrid",
-        generation: index.generation ? "ClaudeLLM" : "extractive",
+        generation: index.generation ? "remote" : "extractive",
         examples: index.examples,
       };
     },
