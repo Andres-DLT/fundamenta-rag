@@ -10,6 +10,9 @@ Se ofrecen dos implementaciones con la misma interfaz:
   No necesita descargar nada y se entrena con los propios documentos.
 - `SentenceTransformerEmbedder`: un modelo neuronal multilingüe preentrenado que se
   ejecuta en local. Requiere el extra `[semantic]`.
+- `OnnxEmbedder`: el mismo modelo, cuantizado a 8 bits y ejecutado con ONNX Runtime.
+  Ocupa cuatro veces menos y no necesita PyTorch, por lo que cabe en servidores con
+  poca memoria. Requiere el extra `[onnx]`.
 """
 
 from __future__ import annotations
@@ -158,10 +161,89 @@ class SentenceTransformerEmbedder:
         return self._encode([self.query_prefix + text])[0]
 
 
+class OnnxEmbedder:
+    """El modelo E5 multilingüe cuantizado, ejecutado con ONNX Runtime en lugar de PyTorch.
+
+    Replica lo que hace sentence-transformers con este modelo: tokeniza con SentencePiece,
+    obtiene un vector por token, los promedia ignorando el relleno (mean pooling) y
+    normaliza. Los pesos cuantizados a 8 bits ocupan 118 MB y el proceso completo cabe
+    en unos 300 MB de memoria, por lo que funciona en los planes gratuitos de hosting.
+    """
+
+    # Identificadores especiales del vocabulario de XLM-RoBERTa, en el que se basa E5
+    BOS, PAD, EOS, UNK = 0, 1, 2, 3
+
+    def __init__(
+        self,
+        model_repo: str = "Xenova/multilingual-e5-small",
+        model_file: str = "onnx/model_int8.onnx",
+        tokenizer_repo: str = "intfloat/multilingual-e5-small",
+        query_prefix: str = "query: ",
+        document_prefix: str = "passage: ",
+        batch_size: int = 8,
+        max_length: int = 512,
+    ) -> None:
+        try:
+            import onnxruntime
+            import sentencepiece
+            from huggingface_hub import hf_hub_download
+            from huggingface_hub.utils import disable_progress_bars
+        except ImportError as error:
+            raise ImportError(
+                'OnnxEmbedder requiere el extra [onnx]: pip install -e ".[onnx]"'
+            ) from error
+        disable_progress_bars()
+        self.query_prefix = query_prefix
+        self.document_prefix = document_prefix
+        self.batch_size = batch_size
+        self.max_length = max_length
+        self.tokenizer = sentencepiece.SentencePieceProcessor(
+            model_file=hf_hub_download(tokenizer_repo, "sentencepiece.bpe.model")
+        )
+        options = onnxruntime.SessionOptions()
+        options.log_severity_level = 3
+        options.enable_cpu_mem_arena = False  # devuelve la memoria tras cada lote
+        self.session = onnxruntime.InferenceSession(
+            hf_hub_download(model_repo, model_file), options, providers=["CPUExecutionProvider"]
+        )
+        self.input_names = {model_input.name for model_input in self.session.get_inputs()}
+
+    def _token_ids(self, text: str) -> list[int]:
+        # El vocabulario del modelo desplaza en 1 los identificadores de SentencePiece
+        pieces = [self.UNK if i == 0 else i + 1 for i in self.tokenizer.encode(text)]
+        return [self.BOS, *pieces[: self.max_length - 2], self.EOS]
+
+    def _encode(self, texts: list[str]) -> np.ndarray:
+        vectors = []
+        for start in range(0, len(texts), self.batch_size):
+            batch = [self._token_ids(text) for text in texts[start : start + self.batch_size]]
+            width = max(len(ids) for ids in batch)
+            ids = np.full((len(batch), width), self.PAD, dtype=np.int64)
+            mask = np.zeros((len(batch), width), dtype=np.int64)
+            for row, tokens in enumerate(batch):
+                ids[row, : len(tokens)] = tokens
+                mask[row, : len(tokens)] = 1
+            feed = {"input_ids": ids, "attention_mask": mask}
+            if "token_type_ids" in self.input_names:
+                feed["token_type_ids"] = np.zeros_like(ids)
+            hidden = self.session.run(None, feed)[0]
+            weights = mask[..., None].astype(np.float32)
+            vectors.append((hidden * weights).sum(axis=1) / weights.sum(axis=1))
+        return normalize_rows(np.vstack(vectors))
+
+    def embed_documents(self, texts: list[str]) -> np.ndarray:
+        return self._encode([self.document_prefix + text for text in texts])
+
+    def embed_query(self, text: str) -> np.ndarray:
+        return self._encode([self.query_prefix + text])[0]
+
+
 def get_embedder(name: str) -> Embedder:
-    """Crea un embedder por nombre: "lsa" o "semantic"."""
+    """Crea un embedder por nombre: "lsa", "semantic" u "onnx"."""
     if name == "lsa":
         return LSAEmbedder()
     if name == "semantic":
         return SentenceTransformerEmbedder()
-    raise ValueError(f"Embedder desconocido: {name!r} (opciones: lsa, semantic)")
+    if name == "onnx":
+        return OnnxEmbedder()
+    raise ValueError(f"Embedder desconocido: {name!r} (opciones: lsa, semantic, onnx)")

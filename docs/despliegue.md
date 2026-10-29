@@ -1,17 +1,16 @@
 # Despliegue
 
-Fundamenta se distribuye como una imagen Docker que contiene el motor, la aplicación
-web, el modelo de embeddings y el caso de estudio. Puede ejecutarse en cualquier
-plataforma que admita contenedores.
+Fundamenta puede desplegarse de dos formas, con la misma aplicación web y la misma
+calidad de búsqueda:
 
-## Requisitos de la instancia
+| | Configuración ligera (`onnx`) | Imagen Docker completa (`semantic`) |
+|---|---|---|
+| Modelo de embeddings | E5 multilingüe cuantizado a 8 bits, con ONNX Runtime | E5 multilingüe original, con PyTorch |
+| Memoria necesaria | 512 MB (uso real: unos 300 MB) | 2 GB |
+| Acierto en la evaluación | 93 % (MRR 0,80) | 93 % (MRR 0,82) |
+| Uso recomendado | Demostraciones y planes gratuitos | Producción y desarrollo |
 
-| Recurso | Mínimo recomendado |
-|---|---|
-| CPU | 2 vCPU |
-| Memoria | 2 GB (el modelo de embeddings y PyTorch ocupan alrededor de 1 GB) |
-| Disco | 3 GB para la imagen |
-| GPU | No necesaria |
+En ambos casos no se necesita GPU.
 
 ## Configuración
 
@@ -23,16 +22,40 @@ plataforma que admita contenedores.
 | `OLLAMA_HOST` | Dirección del servidor de Ollama, con `FUNDAMENTA_LLM=ollama:<modelo>` | `http://localhost:11434` |
 | `FUNDAMENTA_RATE_LIMIT` | Preguntas por minuto y cliente | 30 |
 | `FUNDAMENTA_DATA` | Carpeta de documentos dentro del contenedor | `data/novatech` |
-| `FUNDAMENTA_EMBEDDER` | `semantic` (modelo E5) o `lsa` | `semantic` |
+| `FUNDAMENTA_EMBEDDER` | `semantic` (modelo E5), `onnx` (E5 cuantizado, sin PyTorch) o `lsa` | `semantic` |
 | `PORT` | Puerto HTTP | 7860 |
 
 Las claves y contraseñas deben configurarse como **secretos** de la plataforma, nunca
 en el código ni en la imagen.
 
-## Opción 1: Hugging Face Spaces (recomendada para demostraciones)
+## Opción 1: Render (plan gratuito)
 
-El plan gratuito ofrece 2 vCPU y 16 GB de memoria, y publica la aplicación en una
-dirección estable del tipo `https://<usuario>-fundamenta.hf.space`.
+El repositorio incluye `render.yaml`, que describe el servicio completo: instalación,
+descarga del modelo, arranque y comprobación de salud. Render lo publica en una
+dirección estable del tipo `https://fundamenta-xxxx.onrender.com`.
+
+1. Cree una cuenta en [render.com](https://render.com) con su cuenta de GitHub.
+2. En el panel, elija *New > Blueprint* y seleccione el repositorio `fundamenta-rag`.
+3. Render mostrará el servicio `fundamenta` y le pedirá el valor de
+   `FUNDAMENTA_PASSWORD`: escriba la contraseña que compartirá con las personas
+   invitadas.
+4. Pulse *Deploy Blueprint*. La primera construcción tarda unos cinco minutos; cuando el
+   estado pase a *Live*, abra la dirección del servicio. El navegador solicitará un
+   usuario —cualquiera es válido— y la contraseña configurada.
+
+Cada vez que se actualice la rama principal del repositorio, Render vuelve a desplegar
+automáticamente. Para respuestas generadas con Claude, añada en *Environment* las
+variables `FUNDAMENTA_LLM=claude` y `ANTHROPIC_API_KEY`.
+
+Los servicios gratuitos de Render se suspenden tras 15 minutos sin uso y se reactivan
+con la siguiente visita, que tarda aproximadamente un minuto. Para una demostración
+importante, conviene abrir la aplicación unos minutos antes.
+
+## Opción 2: Hugging Face Spaces
+
+Ejecuta la imagen Docker completa con 2 vCPU y 16 GB de memoria, y publica la aplicación
+en una dirección estable del tipo `https://<usuario>-fundamenta.hf.space`. Alojar
+aplicaciones Docker en Hugging Face requiere una suscripción PRO.
 
 1. Cree una cuenta en [huggingface.co](https://huggingface.co) y un token de acceso
    con permiso de escritura (*Settings > Access Tokens*).
@@ -59,13 +82,9 @@ dirección estable del tipo `https://<usuario>-fundamenta.hf.space`.
    varios minutos) y abra la dirección de la aplicación. El navegador solicitará un
    usuario —cualquiera es válido— y la contraseña configurada.
 
-Los Spaces gratuitos se suspenden tras un periodo sin uso y se reactivan con la
-siguiente visita, que tarda aproximadamente un minuto. Para una demostración
-importante, conviene abrir la aplicación unos minutos antes.
+## Opción 3: cualquier plataforma de contenedores
 
-## Opción 2: cualquier plataforma de contenedores
-
-Render, Railway, Google Cloud Run, Azure Container Apps o un servidor propio:
+Railway, Google Cloud Run, Azure Container Apps o un servidor propio:
 
 ```bash
 docker build -t fundamenta .

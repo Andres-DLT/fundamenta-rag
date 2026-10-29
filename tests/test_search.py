@@ -101,6 +101,24 @@ def test_semantic_embedder_understands_paraphrases():
     assert query @ docs[0] > query @ docs[1]
 
 
+@pytest.mark.semantic
+def test_onnx_embedder_matches_the_full_model():
+    pytest.importorskip("onnxruntime")
+    pytest.importorskip("sentence_transformers")
+    texts = ["Si pierdes el portátil o te lo roban, avisa a IT.", "El plan Starter cuesta 15 €."]
+    onnx = get_embedder("onnx")
+    full = get_embedder("semantic")
+
+    vectors = onnx.embed_documents(texts)
+    query = onnx.embed_query("Me han robado el ordenador")
+
+    assert vectors.shape == (2, 384)
+    assert np.allclose(np.linalg.norm(vectors, axis=1), 1, atol=1e-5)
+    assert query @ vectors[0] > query @ vectors[1]
+    # La cuantización apenas altera los vectores del modelo original
+    assert np.all(np.sum(vectors * full.embed_documents(texts), axis=1) > 0.95)
+
+
 # --- Módulo 05: almacén vectorial ---------------------------------------------
 
 

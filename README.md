@@ -39,6 +39,7 @@ vocabulario distinto al de los documentos.
 |---|---:|---:|---:|
 | Búsqueda léxica (BM25) | 78 % | 100 % | 50 % |
 | **Búsqueda híbrida con modelo multilingüe** (por defecto) | **93 %** | **100 %** | **83 %** |
+| Búsqueda híbrida con el modelo cuantizado (servidores de 512 MB) | 93 % | 100 % | 83 % |
 
 La metodología, el detalle por configuración y el análisis de errores se describen en
 el [módulo 09](modulos/09-evaluacion/README.md). Los resultados corresponden a una
@@ -85,9 +86,10 @@ PDF, Markdown y texto).
 
 ## Despliegue
 
-Fundamenta incluye un `Dockerfile` listo para producción y un script de despliegue en
-Hugging Face Spaces. La aplicación admite contraseña de acceso y límite de preguntas por
-cliente. Consulte la [guía de despliegue](docs/despliegue.md).
+Fundamenta incluye un `Dockerfile` listo para producción, una configuración para
+desplegar en Render con un clic (`render.yaml`, compatible con su plan gratuito) y un
+script de despliegue en Hugging Face Spaces. La aplicación admite contraseña de acceso y
+límite de preguntas por cliente. Consulte la [guía de despliegue](docs/despliegue.md).
 
 ## Uso como librería
 

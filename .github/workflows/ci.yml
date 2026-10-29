@@ -48,7 +48,7 @@ jobs:
       - name: Instalar dependencias (PyTorch para CPU)
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev,semantic,claude]"
+          pip install -e ".[dev,semantic,claude,onnx]"
 
       - name: Caché del modelo de embeddings
         uses: actions/cache@v4
@@ -87,3 +87,38 @@ jobs:
       - name: Registro del contenedor
         if: always()
         run: docker logs fundamenta || true
+
+  render:
+    name: Configuración ligera (Render)
+    runs-on: ubuntu-latest
+    env:
+      FUNDAMENTA_EMBEDDER: onnx
+      FUNDAMENTA_PASSWORD: ci
+      PORT: "7860"
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Construir como Render (sin PyTorch)
+        run: |
+          pip install ".[onnx]"
+          fundamenta search "vacaciones" --k 1 > /dev/null
+          ! pip show torch
+
+      - name: Evaluación de recuperación
+        run: fundamenta eval --embedder onnx
+
+      - name: Arrancar y comprobar memoria
+        run: |
+          fundamenta serve --host 0.0.0.0 --port "$PORT" &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:7860/api/health && break; sleep 2; done
+          curl -sf -u visitante:ci -H "Content-Type: application/json" \
+            -d '{"question": "¿Cuánto tiempo libre me dan al año?"}' \
+            http://127.0.0.1:7860/api/ask | grep -q "23 días laborables"
+          rss=$(ps -o rss= -p "$(pgrep -f 'fundamenta serve')")
+          echo "Memoria en uso: $((rss / 1024)) MB"
+          test "$rss" -lt 450000
