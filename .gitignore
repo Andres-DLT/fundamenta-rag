@@ -25,3 +25,6 @@ venv/
 Thumbs.db
 .vscode/
 .idea/
+
+# Versión web generada (scripts/build_web.py)
+site/

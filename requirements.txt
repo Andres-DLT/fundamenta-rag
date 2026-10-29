@@ -1,0 +1,5 @@
+# Dependencias de la función de generación en Vercel (api/answer.py).
+# Para desarrollo, instale el paquete con pip install -e ".[dev]" (ver README).
+numpy>=1.26
+pypdf>=4.0
+anthropic>=2.3

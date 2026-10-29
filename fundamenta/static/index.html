@@ -86,6 +86,21 @@
   details pre { white-space: pre-wrap; font: inherit; font-size: .9rem; margin: 8px 0 0; color: var(--text); }
   .error { color: #b3261e; }
   footer { text-align: center; color: var(--muted); font-size: .8rem; padding: 24px; }
+  dialog {
+    width: min(400px, calc(100% - 32px)); padding: 24px; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  dialog::backdrop { background: rgba(10, 15, 22, .55); }
+  dialog h2 { font-size: 1.1rem; margin: 0 0 6px; }
+  dialog p { color: var(--muted); margin: 0 0 16px; font-size: .92rem; }
+  dialog form { flex-direction: column; }
+  dialog input {
+    padding: 11px 14px; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: var(--radius);
+  }
+  dialog input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  dialog button.primary { padding: 11px; }
+  dialog .error { margin: 0; font-size: .88rem; }
   @media (max-width: 600px) {
     header { padding: 12px 16px; }
     .status { display: none; }
@@ -131,6 +146,16 @@
 
 <footer>Fundamenta · Motor RAG con respuestas fundamentadas y citas verificables</footer>
 
+<dialog id="gate">
+  <h2>Acceso a la demostración</h2>
+  <p>Introduzca la contraseña que ha recibido para consultar la documentación.</p>
+  <form id="gate-form">
+    <input id="gate-password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+    <span class="error" id="gate-error" hidden></span>
+    <button class="primary" id="gate-submit" type="submit">Entrar</button>
+  </form>
+</dialog>
+
 <script>
   const $ = (id) => document.getElementById(id);
   const MODES = {
@@ -139,17 +164,76 @@
     none: "Sin resultados en la documentación",
   };
 
+  // Origen de las respuestas: el servidor de Fundamenta o, en la versión web sin
+  // servidor, el motor que se ejecuta en el propio navegador (web/engine.js).
+  const backend = window.fundamentaEngine || {
+    async health() {
+      return (await fetch(new URL("/api/health", location.origin))).json();
+    },
+    async requiresPassword() {
+      return false; // el servidor usa la autenticación del navegador
+    },
+    async ask(question) {
+      const response = await fetch(new URL("/api/ask", location.origin), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Error desconocido");
+      return data;
+    },
+  };
+
+  let statusLine = "Conectando…";
+  window.addEventListener("fundamenta:status", (event) => {
+    $("status").textContent = event.detail || statusLine;
+  });
+
+  // Pide la contraseña hasta que el backend la acepte
+  function unlock() {
+    return new Promise((resolve) => {
+      const gate = $("gate");
+      $("gate-form").onsubmit = async (event) => {
+        event.preventDefault();
+        $("gate-submit").disabled = true;
+        $("gate-error").hidden = true;
+        try {
+          if (await backend.login($("gate-password").value)) {
+            gate.close();
+            resolve();
+            return;
+          }
+          $("gate-error").textContent = "Contraseña incorrecta.";
+        } catch (error) {
+          $("gate-error").textContent = error.message;
+        } finally {
+          $("gate-submit").disabled = false;
+        }
+        $("gate-error").hidden = false;
+        $("gate-password").select();
+      };
+      gate.addEventListener("cancel", (event) => event.preventDefault());
+      gate.showModal();
+    });
+  }
+
+  async function ensureAccess() {
+    if (await backend.requiresPassword()) await unlock();
+  }
+
   async function loadHealth() {
     try {
-      const health = await (await fetch(new URL("/api/health", location.origin))).json();
+      const health = await backend.health();
       const retrieval = { lexical: "léxica", semantic: "semántica", hybrid: "híbrida" };
       const generation = { extractive: "modo extractivo", ClaudeLLM: "Claude", OllamaLLM: "Ollama" };
-      $("status").textContent = [
+      statusLine = [
         health.organization,
         `${health.chunks} fragmentos`,
         `búsqueda ${retrieval[health.retrieval] || health.retrieval}`,
         generation[health.generation] || health.generation,
       ].join(" · ");
+      if ($("status").textContent === "Conectando…") $("status").textContent = statusLine;
       for (const example of health.examples) {
         const button = document.createElement("button");
         button.type = "button";
@@ -221,13 +305,15 @@
     $("submit").disabled = true;
     $("submit").textContent = "Consultando…";
     try {
-      const response = await fetch(new URL("/api/ask", location.origin), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Error desconocido");
+      await ensureAccess();
+      let data;
+      try {
+        data = await backend.ask(question);
+      } catch (error) {
+        if (!error.unauthorized) throw error;
+        await unlock();
+        data = await backend.ask(question);
+      }
       const mode = $("mode");
       mode.className = `badge ${data.mode}`;
       mode.textContent = MODES[data.mode] || data.mode;
@@ -249,14 +335,14 @@
   $("question").addEventListener("keydown", (event) => {
     if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); ask(); }
   });
-  loadHealth();
-
-  // Permite compartir enlaces a una consulta: /?q=pregunta
-  const initialQuestion = new URLSearchParams(location.search).get("q");
-  if (initialQuestion) {
-    $("question").value = initialQuestion;
-    ask();
-  }
+  loadHealth().then(ensureAccess).catch(() => {}).then(() => {
+    // Permite compartir enlaces a una consulta: /?q=pregunta
+    const initialQuestion = new URLSearchParams(location.search).get("q");
+    if (initialQuestion) {
+      $("question").value = initialQuestion;
+      ask();
+    }
+  });
 </script>
 </body>
 </html>
