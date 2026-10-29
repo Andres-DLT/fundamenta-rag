@@ -123,8 +123,9 @@ def make_parser() -> argparse.ArgumentParser:
     common.add_argument(
         "--embedder",
         default=env("FUNDAMENTA_EMBEDDER", "lsa"),
-        choices=["lsa", "semantic", "none"],
-        help="lsa: sin descargas; semantic: modelo multilingüe (extra [semantic])",
+        choices=["lsa", "semantic", "onnx", "none"],
+        help="lsa: sin descargas; semantic: modelo multilingüe (extra [semantic]); "
+        "onnx: el mismo modelo cuantizado, sin PyTorch (extra [onnx])",
     )
     common.add_argument(
         "--llm",

@@ -19,6 +19,8 @@ dependencies = [
 [project.optional-dependencies]
 # Embeddings semánticos con un modelo multilingüe local (módulo 04)
 semantic = ["sentence-transformers>=3.0"]
+# El mismo modelo cuantizado y sin PyTorch, para servidores con poca memoria
+onnx = ["onnxruntime>=1.18", "sentencepiece>=0.2", "huggingface_hub>=0.23"]
 # Generación con Claude, de Anthropic (módulo 07)
 claude = ["anthropic>=2.3"]
 notebooks = ["jupyterlab>=4.0"]

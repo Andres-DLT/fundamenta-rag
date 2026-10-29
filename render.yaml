@@ -1,0 +1,25 @@
+# Despliegue en Render (plan gratuito, 512 MB de memoria): docs/despliegue.md
+services:
+  - type: web
+    name: fundamenta
+    runtime: python
+    plan: free
+    # Instala el motor y descarga el modelo durante la construcción
+    buildCommand: pip install ".[onnx]" && fundamenta search "vacaciones" --k 1 > /dev/null
+    startCommand: fundamenta serve --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: FUNDAMENTA_EMBEDDER
+        value: onnx
+      - key: FUNDAMENTA_LLM
+        value: none
+      - key: FUNDAMENTA_RATE_LIMIT
+        value: "20"
+      # El modelo se guarda dentro del proyecto para que la ejecución lo encuentre
+      - key: HF_HOME
+        value: /opt/render/project/src/.cache/huggingface
+      # Render la solicita al crear el servicio; no se guarda en el repositorio
+      - key: FUNDAMENTA_PASSWORD
+        sync: false
