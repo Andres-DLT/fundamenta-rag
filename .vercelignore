@@ -1,0 +1,12 @@
+# Vercel solo necesita la función de generación, el motor y los documentos
+.github
+docs
+evaluacion
+modulos
+scripts
+tests
+web
+Dockerfile
+.dockerignore
+render.yaml
+pyproject.toml

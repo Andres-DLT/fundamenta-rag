@@ -86,10 +86,17 @@ PDF, Markdown y texto).
 
 ## Despliegue
 
-Fundamenta incluye un `Dockerfile` listo para producción, una configuración para
-desplegar en Render con un clic (`render.yaml`, compatible con su plan gratuito) y un
-script de despliegue en Hugging Face Spaces. La aplicación admite contraseña de acceso y
-límite de preguntas por cliente. Consulte la [guía de despliegue](docs/despliegue.md).
+Fundamenta se puede desplegar de varias formas, todas con contraseña de acceso y límite
+de preguntas por cliente:
+
+- **Versión web gratuita**: la búsqueda se ejecuta en el navegador del visitante y las
+  respuestas las redacta Claude a través de una función sin servidor. Se publica en
+  GitHub Pages y Vercel.
+- **Servidor ligero**: configuración para Render (`render.yaml`) que funciona en su plan
+  gratuito, con el modelo de embeddings cuantizado.
+- **Imagen Docker** para cualquier plataforma de contenedores o Hugging Face Spaces.
+
+Consulte la [guía de despliegue](docs/despliegue.md).
 
 ## Uso como librería
 
@@ -141,6 +148,7 @@ flowchart LR
 | Recuperación híbrida | 06 | [`retriever.py`](fundamenta/retriever.py) |
 | Generación con citas | 07 | [`generation.py`](fundamenta/generation.py), [`llm.py`](fundamenta/llm.py) |
 | Pipeline, CLI y web | 08 | [`pipeline.py`](fundamenta/pipeline.py), [`cli.py`](fundamenta/cli.py), [`server.py`](fundamenta/server.py) |
+| Versión web sin servidor | — | [`web.py`](fundamenta/web.py), [`engine.js`](web/engine.js), [`api/answer.py`](api/answer.py) |
 | Evaluación | 09 | [`evaluation.py`](fundamenta/evaluation.py) |
 | Reescritura de consultas | 10 | [`query.py`](fundamenta/query.py) |
 
@@ -174,14 +182,17 @@ fundamenta-rag/
 ├── evaluacion/              Conjunto de preguntas de referencia
 ├── tests/                   Pruebas automatizadas
 ├── docs/                    Documentación para clientes y guía de despliegue
-├── scripts/                 Script de despliegue en Hugging Face Spaces
+├── web/                     Motor de búsqueda para el navegador (versión web)
+├── api/                     Función de generación sin servidor (Vercel)
+├── scripts/                 Generación de la versión web y despliegue en Hugging Face
 └── Dockerfile               Imagen de producción
 ```
 
 ## Calidad
 
-- 85 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
-  su protección de acceso y la integración con los proveedores de modelos.
+- 109 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
+  la función de generación, su protección de acceso y la integración con los
+  proveedores de modelos.
 - Integración continua en GitHub Actions: análisis estático, pruebas en Python 3.11,
   3.12 y 3.13, y ejecución de todos los cuadernos con el modelo de embeddings real.
 
@@ -194,7 +205,8 @@ ruff check . && pytest && pytest --nbmake modulos/
 
 - [Resumen ejecutivo](docs/resumen-ejecutivo.md): propuesta de valor, casos de uso y
   modalidades de implantación.
-- [Despliegue](docs/despliegue.md): Docker, Hugging Face Spaces y configuración.
+- [Despliegue](docs/despliegue.md): versión web, Render, Docker, Hugging Face Spaces y
+  configuración.
 - [Puesta en producción](modulos/11-produccion/README.md): arquitectura de referencia,
   seguridad y costes.
 
