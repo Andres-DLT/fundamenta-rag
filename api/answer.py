@@ -4,9 +4,10 @@ Recibe la pregunta y los números de los fragmentos que el navegador ha recupera
 responde con el mismo formato que `POST /api/ask` del servidor. Toda la lógica está en
 `fundamenta.web.GenerationService`; este archivo solo la adapta a HTTP.
 
-Variables de entorno: FUNDAMENTA_PASSWORD (obligatoria), ANTHROPIC_API_KEY,
-FUNDAMENTA_LLM (por defecto "claude"), FUNDAMENTA_RATE_LIMIT y
-FUNDAMENTA_ALLOWED_ORIGIN (origen de la página web, por defecto cualquiera).
+Variables de entorno: FUNDAMENTA_PASSWORD (obligatoria), la clave del proveedor
+(ANTHROPIC_API_KEY o GEMINI_API_KEY, entre otras), FUNDAMENTA_LLM (por defecto, el
+proveedor de la clave configurada), FUNDAMENTA_RATE_LIMIT y FUNDAMENTA_ALLOWED_ORIGIN
+(origen de la página web, por defecto cualquiera).
 Ver docs/despliegue.md.
 """
 

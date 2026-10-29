@@ -14,7 +14,14 @@ from fundamenta.generation import (
     cited_numbers,
     to_sources,
 )
-from fundamenta.llm import ClaudeLLM, LLMError, OllamaLLM, get_llm
+from fundamenta.llm import (
+    ClaudeLLM,
+    LLMError,
+    OllamaLLM,
+    OpenAICompatibleLLM,
+    default_llm_name,
+    get_llm,
+)
 from fundamenta.loaders import Document
 from fundamenta.retriever import SearchResult
 from tests.conftest import FakeLLM
@@ -130,6 +137,104 @@ def test_ollama_llm_against_a_local_server():
     assert received["body"]["model"] == "test"
     assert received["body"]["stream"] is False
     assert [m["role"] for m in received["body"]["messages"]] == ["system", "user"]
+
+
+def test_get_llm_openai_compatible_providers(monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "clave-gemini")
+    monkeypatch.setenv("OPENAI_API_KEY", "clave-openai")
+
+    gemini = get_llm("gemini")
+    assert isinstance(gemini, OpenAICompatibleLLM)
+    assert gemini.model == "gemini-3.8-flash"
+    assert gemini.base_url == "https://generativelanguage.googleapis.com/v1beta/openai"
+    assert (gemini.api_key, gemini.label) == ("clave-gemini", "Gemini")
+    assert get_llm("gemini:otro-modelo").model == "otro-modelo"
+    assert get_llm("openai:modelo-x").base_url == "https://api.openai.com/v1"
+    with pytest.raises(ValueError, match="modelo"):
+        get_llm("openai")
+
+
+def test_get_llm_requires_keys_and_addresses(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("FUNDAMENTA_LLM_BASE_URL", raising=False)
+    with pytest.raises(ValueError, match="clave"):
+        get_llm("gemini")
+    with pytest.raises(ValueError, match="FUNDAMENTA_LLM_BASE_URL"):
+        get_llm("compatible:modelo")
+
+    monkeypatch.setenv("FUNDAMENTA_LLM_BASE_URL", "https://pasarela.example/v1/")
+    monkeypatch.setenv("FUNDAMENTA_LLM_API_KEY", "clave")
+    llm = get_llm("compatible:modelo")
+    assert (llm.base_url, llm.model) == ("https://pasarela.example/v1", "modelo")
+
+
+def test_default_llm_follows_the_configured_key(monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    assert default_llm_name() == "claude"
+    monkeypatch.setenv("GEMINI_API_KEY", "clave")
+    assert default_llm_name() == "gemini"
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "clave")
+    assert default_llm_name() == "claude"
+
+
+def _serve_once(status, payload):
+    received = {}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):  # noqa: N802
+            received["path"] = self.path
+            received["auth"] = self.headers["Authorization"]
+            received["body"] = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            body = json.dumps(payload).encode()
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.handle_request)
+    thread.start()
+    llm = OpenAICompatibleLLM(
+        model="modelo",
+        base_url=f"http://127.0.0.1:{server.server_address[1]}/v1/",
+        api_key="clave",
+        label="Prueba",
+    )
+    return llm, received, lambda: (thread.join(timeout=5), server.server_close())
+
+
+def test_openai_compatible_llm_against_a_local_server():
+    reply = {"choices": [{"finish_reason": "stop", "message": {"content": " Hola [1] "}}]}
+    llm, received, close = _serve_once(200, reply)
+    try:
+        assert llm.generate("sistema", "pregunta") == "Hola [1]"
+    finally:
+        close()
+
+    assert received["path"] == "/v1/chat/completions"
+    assert received["auth"] == "Bearer clave"
+    assert received["body"]["model"] == "modelo"
+    assert [m["role"] for m in received["body"]["messages"]] == ["system", "user"]
+
+
+@pytest.mark.parametrize(
+    ("status", "payload", "message"),
+    [
+        (401, {"error": {"message": "API key not valid"}}, "Error 401 de Prueba"),
+        (200, {"choices": [{"finish_reason": "content_filter", "message": {}}]}, "declinó"),
+    ],
+)
+def test_openai_compatible_llm_reports_errors(status, payload, message):
+    llm, _, close = _serve_once(status, payload)
+    try:
+        with pytest.raises(LLMError, match=message):
+            llm.generate("sistema", "pregunta")
+    finally:
+        close()
 
 
 def test_ollama_llm_reports_connection_errors():

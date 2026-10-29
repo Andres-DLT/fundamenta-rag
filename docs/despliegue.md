@@ -20,8 +20,10 @@ En ningún caso se necesita GPU.
 | Variable | Descripción | Por defecto |
 |---|---|---|
 | `FUNDAMENTA_PASSWORD` | Contraseña de acceso a la interfaz y a la API. **Recomendada** en cualquier despliegue público. | sin contraseña |
-| `FUNDAMENTA_LLM` | `none` (modo extractivo), `claude`, `claude:<modelo>` u `ollama:<modelo>` | `none` |
+| `FUNDAMENTA_LLM` | `none` (modo extractivo), `claude[:<modelo>]`, `gemini[:<modelo>]`, `openai:<modelo>`, `ollama:<modelo>` o `compatible:<modelo>` | `none` |
 | `ANTHROPIC_API_KEY` | Clave de la API de Anthropic, necesaria con `FUNDAMENTA_LLM=claude` | — |
+| `GEMINI_API_KEY` / `OPENAI_API_KEY` | Clave de Google Gemini u OpenAI, con `gemini` u `openai` | — |
+| `FUNDAMENTA_LLM_BASE_URL` / `FUNDAMENTA_LLM_API_KEY` | Dirección y clave de otro proveedor compatible con la API de OpenAI (OpenRouter, Groq…), con `compatible:<modelo>` | — |
 | `OLLAMA_HOST` | Dirección del servidor de Ollama, con `FUNDAMENTA_LLM=ollama:<modelo>` | `http://localhost:11434` |
 | `FUNDAMENTA_RATE_LIMIT` | Preguntas por minuto y cliente | 30 |
 | `FUNDAMENTA_DATA` | Carpeta de documentos dentro del contenedor | `data/novatech` |
@@ -41,7 +43,7 @@ función sin servidor que usa el mismo `AnswerGenerator` que el servidor:
 ```mermaid
 flowchart LR
     N[Navegador<br/>búsqueda híbrida] -- pregunta + números de fragmento --> F[Función en Vercel<br/>api/answer.py]
-    F -- fragmentos numerados --> C[Claude]
+    F -- fragmentos numerados --> C[LLM<br/>Claude · Gemini · OpenAI]
     C --> F -- respuesta con citas --> N
 ```
 
@@ -56,27 +58,33 @@ con `scripts/build_web.py` y la publica en cada cambio de la rama principal, en
 *Settings > Pages > Source: GitHub Actions*. Sin función de generación, la página
 responde en modo extractivo.
 
-**2. Clave de Claude.** En [console.anthropic.com](https://console.anthropic.com), cree
-una clave (*API Keys*), recargue saldo (*Billing*) y fije un límite de gasto mensual
-(*Limits*) acorde con el uso previsto.
+**2. Clave del modelo de lenguaje.** Cualquiera de estas opciones:
+
+- **Claude**: en [platform.claude.com](https://platform.claude.com), cree una clave
+  (*API Keys*), recargue saldo (*Billing*) y fije un límite de gasto mensual (*Limits*).
+- **Google Gemini**: en [aistudio.google.com/apikey](https://aistudio.google.com/apikey),
+  cree una clave. El plan gratuito es suficiente para una demostración, pero Google
+  puede utilizar su contenido para mejorar sus productos: úselo solo con documentación
+  no confidencial.
 
 **3. Función de generación (Vercel).**
 
 1. Cree una cuenta en [vercel.com](https://vercel.com) con su cuenta de GitHub.
 2. *Add New > Project*, importe el repositorio y, en *Environment Variables*, añada:
    - `FUNDAMENTA_PASSWORD`: la contraseña que compartirá con las personas invitadas.
-   - `ANTHROPIC_API_KEY`: la clave del paso anterior.
+   - `ANTHROPIC_API_KEY` o `GEMINI_API_KEY`: la clave del paso anterior. La función
+     elige el proveedor según la clave configurada.
    - `FUNDAMENTA_ALLOWED_ORIGIN` (recomendada): `https://<usuario>.github.io`.
 3. Pulse *Deploy*. La función queda en `https://<proyecto>.vercel.app/api/answer`.
 
 **4. Conexión.** En GitHub, *Settings > Secrets and variables > Actions > Variables*,
 cree la variable `FUNDAMENTA_GENERATION_URL` con la dirección de la función y vuelva a
 ejecutar el flujo *Web* (*Actions > Web > Run workflow*). La página pedirá la
-contraseña y las respuestas pasarán a redactarse con Claude.
+contraseña y las respuestas pasarán a redactarse con el modelo de lenguaje.
 
-Variables opcionales de la función: `FUNDAMENTA_LLM` (por defecto `claude`; por
-ejemplo `claude:<modelo>` para usar otro modelo) y `FUNDAMENTA_RATE_LIMIT` (preguntas
-por minuto y visitante, 20 por defecto).
+Variables opcionales de la función: `FUNDAMENTA_LLM` (por defecto, el proveedor de la
+clave configurada; por ejemplo `gemini:<modelo>` para usar otro modelo) y
+`FUNDAMENTA_RATE_LIMIT` (preguntas por minuto y visitante, 20 por defecto).
 
 Para generar la web en local:
 
@@ -172,8 +180,9 @@ docker run -p 7860:7860 -v /ruta/documentos:/datos -e FUNDAMENTA_DATA=/datos fun
   del modelo.
 - El límite por cliente (`FUNDAMENTA_RATE_LIMIT`) acota el consumo, pero no sustituye a
   la contraseña.
-- Con `FUNDAMENTA_LLM=claude`, los fragmentos recuperados se envían a Anthropic. Si la
-  documentación es confidencial, utilice Ollama en la propia infraestructura o el modo
+- Con un proveedor externo (Claude, Gemini, OpenAI), los fragmentos recuperados se
+  envían a ese proveedor. Si la documentación es confidencial, utilice un plan que no
+  use los datos para entrenar, Ollama en la propia infraestructura o el modo
   extractivo.
 - Para un despliegue corporativo, consulte los requisitos del
   [módulo 11](../modulos/11-produccion/README.md): autenticación con el proveedor de
