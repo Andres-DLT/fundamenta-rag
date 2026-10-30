@@ -4,101 +4,87 @@
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 [![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
 
-**Respuestas fundamentadas en la documentación de su organización, con citas verificables.**
+Un motor RAG (*Retrieval-Augmented Generation*) escrito desde cero en Python, sin
+frameworks. Le das una carpeta de documentos (PDF, Markdown o texto) y responde
+preguntas sobre ellos citando de dónde sale cada dato. Si la respuesta no está en los
+documentos, lo dice en vez de inventarla.
 
-Fundamenta es un motor RAG (*Retrieval-Augmented Generation*) construido desde cero en
-Python. Permite que un modelo de lenguaje responda preguntas sobre manuales, políticas,
-catálogos o bases de conocimiento internas, indicando la fuente exacta de cada
-afirmación y absteniéndose cuando la documentación no contiene la respuesta.
-
-El proyecto incluye un **programa técnico de doce módulos** que documenta, paso a paso
-y con código ejecutable, cada componente del sistema.
+Lo construí por partes, y cada parte tiene su módulo en `modulos/` con una explicación,
+un cuaderno que se puede ejecutar y sus pruebas, para poder seguir cómo funciona cada
+pieza.
 
 ![Interfaz de consulta de Fundamenta](docs/img/demo.png)
 
-## Capacidades
+## Qué hace
 
-| | |
-|---|---|
-| **Respuestas con citas** | Cada afirmación remite al documento, sección o página de origen. |
-| **Abstención controlada** | Si la documentación no contiene la respuesta, el sistema lo indica en lugar de inventar. |
-| **Búsqueda híbrida** | Combina búsqueda léxica (BM25) y semántica multilingüe para entender preguntas formuladas con otras palabras. |
-| **Datos bajo control** | Los embeddings se calculan en local y la generación puede realizarse con modelos en infraestructura propia. |
-| **Independencia del proveedor** | Claude (Anthropic), Gemini (Google), OpenAI, cualquier API compatible, modelos abiertos vía Ollama o modo extractivo sin LLM. |
-| **Control de acceso** | Filtros por metadatos para que cada usuario consulte solo lo que está autorizado a ver. |
-| **Calidad medible** | Evaluación integrada con métricas de recuperación y de respuesta. |
-| **Dependencias mínimas** | Núcleo basado en NumPy y pypdf; servidor web con la librería estándar. |
+- Busca combinando BM25 (palabras exactas) con embeddings multilingües, así encuentra
+  el fragmento correcto aunque la pregunta use otras palabras.
+- Cada afirmación de la respuesta lleva una cita al documento, sección o página.
+- Si no encuentra nada que responda la pregunta, se abstiene.
+- Funciona con Claude, Gemini, OpenAI, cualquier API compatible con la de OpenAI,
+  modelos locales con Ollama, o sin LLM (modo extractivo: solo muestra los fragmentos).
+- Los embeddings se calculan en local.
+- Se pueden filtrar documentos por metadatos, para que cada usuario vea solo lo que le
+  toca.
+- El núcleo solo depende de NumPy y pypdf, y el servidor web usa la librería estándar.
 
 ## Resultados
 
-Evaluación sobre el caso de estudio incluido (documentación de NovaTech, empresa
-ficticia): 27 preguntas con respuesta, de las que 12 están formuladas con un
-vocabulario distinto al de los documentos.
+Lo probé con un caso de ejemplo: la documentación de NovaTech, una empresa ficticia, y
+27 preguntas con respuesta. En 12 de ellas la pregunta usa palabras distintas a las de
+los documentos, que es justo donde la búsqueda léxica sola se queda corta.
 
 | Configuración | Fragmento correcto entre los 4 primeros | Preguntas directas | Preguntas parafraseadas |
 |---|---:|---:|---:|
-| Búsqueda léxica (BM25) | 78 % | 100 % | 50 % |
-| **Búsqueda híbrida con modelo multilingüe** (por defecto) | **93 %** | **100 %** | **83 %** |
-| Búsqueda híbrida con el modelo cuantizado (servidores de 512 MB) | 93 % | 100 % | 83 % |
+| Solo BM25 | 78 % | 100 % | 50 % |
+| Híbrida con modelo multilingüe (por defecto) | 93 % | 100 % | 83 % |
+| Híbrida con el modelo cuantizado (servidores de 512 MB) | 93 % | 100 % | 83 % |
 
-La metodología, el detalle por configuración y el análisis de errores se describen en
-el [módulo 09](modulos/09-evaluacion/README.md). Los resultados corresponden a una
-colección pequeña y deben validarse con la documentación y las preguntas de cada
-organización.
+El detalle y el análisis de errores están en el [módulo 09](modulos/09-evaluacion/README.md).
+Son pocas preguntas sobre una colección pequeña, así que hay que tomarlo como
+referencia y no como garantía.
 
-## Inicio rápido
+## Probarlo
 
-Requisitos: Python 3.11 o superior.
+Necesitas Python 3.11 o superior.
 
 ```bash
 git clone https://github.com/Andres-DLT/fundamenta-rag.git
 cd fundamenta-rag
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # en Windows: .venv\Scripts\activate
 pip install -e ".[semantic]"
-```
-
-Arranque la demostración web sobre el caso de estudio y abra http://127.0.0.1:8000:
-
-```bash
 fundamenta serve --embedder semantic
 ```
 
-Sin más configuración, el sistema responde en **modo extractivo**, mostrando los
-fragmentos relevantes con sus referencias. Para respuestas redactadas por un modelo de
-lenguaje:
+Abre http://127.0.0.1:8000. Sin configurar nada responde en modo extractivo, mostrando
+los fragmentos con su referencia. Para que un LLM redacte la respuesta:
 
 ```bash
 pip install -e ".[claude]"
-export ANTHROPIC_API_KEY=...       # Windows: set ANTHROPIC_API_KEY=...
+export ANTHROPIC_API_KEY=...       # en Windows: set ANTHROPIC_API_KEY=...
 fundamenta serve --embedder semantic --llm claude
 ```
 
-O bien, con un modelo abierto en local mediante [Ollama](https://ollama.com):
+O con un modelo local en [Ollama](https://ollama.com):
 
 ```bash
 ollama pull qwen2.5:7b
 fundamenta serve --embedder semantic --llm ollama:qwen2.5:7b
 ```
 
-Para usar su propia documentación, indique la carpeta con `--data` (formatos admitidos:
-PDF, Markdown y texto).
+Para usar tus propios documentos, pásale la carpeta con `--data`.
 
-## Despliegue
+### Desde la terminal
 
-Fundamenta se puede desplegar de varias formas, todas con contraseña de acceso y límite
-de preguntas por cliente:
+| Comando | Qué hace |
+|---|---|
+| `fundamenta ask "pregunta"` | Responde una pregunta con sus fuentes |
+| `fundamenta search "consulta"` | Muestra los fragmentos recuperados y su puntuación |
+| `fundamenta serve` | Arranca la web y la API |
+| `fundamenta eval` | Evalúa la recuperación (y las respuestas, con `--answers`) |
 
-- **Versión web gratuita**: la búsqueda se ejecuta en el navegador del visitante y las
-  respuestas las redacta un LLM (Claude, Gemini…) a través de una función sin servidor.
-  Se publica en GitHub Pages y Vercel.
-- **Servidor ligero**: configuración para Render (`render.yaml`) que funciona en su plan
-  gratuito, con el modelo de embeddings cuantizado.
-- **Imagen Docker** para cualquier plataforma de contenedores o Hugging Face Spaces.
-
-Consulte la [guía de despliegue](docs/despliegue.md).
-
-## Uso como librería
+### Como librería
 
 ```python
 from fundamenta import ClaudeLLM, PipelineConfig, RAGPipeline, SentenceTransformerEmbedder
@@ -107,7 +93,7 @@ pipeline = RAGPipeline.from_directory(
     "ruta/a/documentos",
     embedder=SentenceTransformerEmbedder(),
     llm=ClaudeLLM(),
-    config=PipelineConfig(organization="Su organización"),
+    config=PipelineConfig(organization="Mi empresa"),
 )
 
 answer = pipeline.ask("¿Cuál es el procedimiento para solicitar vacaciones?")
@@ -116,16 +102,19 @@ for source in answer.sources:
     print(f"[{source.number}] {source.label}")
 ```
 
-## Línea de comandos
+## Despliegue
 
-| Comando | Función |
-|---|---|
-| `fundamenta ask "pregunta"` | Responde a una pregunta con sus fuentes |
-| `fundamenta search "consulta"` | Muestra los fragmentos recuperados y su puntuación |
-| `fundamenta serve` | Arranca la aplicación web y la API |
-| `fundamenta eval` | Evalúa la calidad de la recuperación (y de las respuestas con `--answers`) |
+Hay tres formas, todas con contraseña y un límite de preguntas por cliente:
 
-## Arquitectura
+- Una versión web gratis: la búsqueda corre en el navegador y la respuesta la redacta
+  un LLM desde una función sin servidor (GitHub Pages + Vercel).
+- Un servidor ligero en el plan gratuito de Render (`render.yaml`), con el modelo de
+  embeddings cuantizado.
+- Una imagen Docker para cualquier plataforma de contenedores o Hugging Face Spaces.
+
+Los pasos están en [docs/despliegue.md](docs/despliegue.md).
+
+## Cómo está hecho
 
 ```mermaid
 flowchart LR
@@ -138,7 +127,7 @@ flowchart LR
     R --> P[Prompt con fragmentos numerados] --> L[LLM] --> S[Respuesta con citas]
 ```
 
-| Componente | Módulo | Código |
+| Pieza | Módulo | Código |
 |---|---|---|
 | Ingesta de documentos | 01 | [`loaders.py`](fundamenta/loaders.py) |
 | Segmentación | 02 | [`chunking.py`](fundamenta/chunking.py) |
@@ -148,73 +137,37 @@ flowchart LR
 | Recuperación híbrida | 06 | [`retriever.py`](fundamenta/retriever.py) |
 | Generación con citas | 07 | [`generation.py`](fundamenta/generation.py), [`llm.py`](fundamenta/llm.py) |
 | Pipeline, CLI y web | 08 | [`pipeline.py`](fundamenta/pipeline.py), [`cli.py`](fundamenta/cli.py), [`server.py`](fundamenta/server.py) |
-| Versión web sin servidor | — | [`web.py`](fundamenta/web.py), [`engine.js`](web/engine.js), [`api/answer.py`](api/answer.py) |
+| Versión web sin servidor | | [`web.py`](fundamenta/web.py), [`engine.js`](web/engine.js), [`api/answer.py`](api/answer.py) |
 | Evaluación | 09 | [`evaluation.py`](fundamenta/evaluation.py) |
 | Reescritura de consultas | 10 | [`query.py`](fundamenta/query.py) |
 
-## Programa técnico
+## Módulos
 
-| Módulo | Contenido |
-|---|---|
-| [00 · Introducción](modulos/00-introduccion/README.md) | Qué es RAG y cuándo utilizarlo |
-| [01 · Ingesta de documentos](modulos/01-ingesta/README.md) | Lectura de formatos y metadatos |
-| [02 · Segmentación](modulos/02-segmentacion/README.md) | División en fragmentos respetando la estructura |
-| [03 · Búsqueda léxica](modulos/03-busqueda-lexica/README.md) | Tokenización para español y BM25 |
-| [04 · Embeddings](modulos/04-embeddings/README.md) | LSA y modelo neuronal multilingüe |
-| [05 · Almacén vectorial](modulos/05-almacen-vectorial/README.md) | Búsqueda por similitud, filtros y persistencia |
-| [06 · Recuperación híbrida](modulos/06-recuperacion-hibrida/README.md) | Reciprocal Rank Fusion y MMR |
-| [07 · Generación con citas](modulos/07-generacion/README.md) | Prompt, proveedores y citas |
-| [08 · Pipeline y demostración](modulos/08-pipeline-y-demo/README.md) | API, CLI y aplicación web |
-| [09 · Evaluación](modulos/09-evaluacion/README.md) | Métricas y resultados |
-| [10 · Mejoras de calidad](modulos/10-mejoras/README.md) | Ajustes medidos y reescritura de consultas |
-| [11 · Puesta en producción](modulos/11-produccion/README.md) | Escalado, seguridad, operación y costes |
+- [00 · Introducción](modulos/00-introduccion/README.md): qué es RAG y cuándo conviene usarlo
+- [01 · Ingesta de documentos](modulos/01-ingesta/README.md): leer formatos y metadatos
+- [02 · Segmentación](modulos/02-segmentacion/README.md): partir en fragmentos sin romper la estructura
+- [03 · Búsqueda léxica](modulos/03-busqueda-lexica/README.md): tokenización para español y BM25
+- [04 · Embeddings](modulos/04-embeddings/README.md): LSA y un modelo neuronal multilingüe
+- [05 · Almacén vectorial](modulos/05-almacen-vectorial/README.md): similitud, filtros y persistencia
+- [06 · Recuperación híbrida](modulos/06-recuperacion-hibrida/README.md): Reciprocal Rank Fusion y MMR
+- [07 · Generación con citas](modulos/07-generacion/README.md): prompt, proveedores y citas
+- [08 · Pipeline y demo](modulos/08-pipeline-y-demo/README.md): API, CLI y web
+- [09 · Evaluación](modulos/09-evaluacion/README.md): métricas y resultados
+- [10 · Mejoras](modulos/10-mejoras/README.md): ajustes medidos y reescritura de consultas
+- [11 · Producción](modulos/11-produccion/README.md): escalado, seguridad, operación y costes
 
-Cada módulo incluye un documento explicativo, un cuaderno ejecutable y pruebas
-automatizadas.
+## Pruebas
 
-## Estructura del repositorio
-
-```text
-fundamenta-rag/
-├── fundamenta/              Paquete de Python (motor RAG, CLI y servidor web)
-├── modulos/                 Programa técnico: un directorio por módulo
-├── data/novatech/           Caso de estudio: documentación de una empresa ficticia
-├── evaluacion/              Conjunto de preguntas de referencia
-├── tests/                   Pruebas automatizadas
-├── docs/                    Documentación para clientes y guía de despliegue
-├── web/                     Motor de búsqueda para el navegador (versión web)
-├── api/                     Función de generación sin servidor (Vercel)
-├── scripts/                 Generación de la versión web y despliegue en Hugging Face
-└── Dockerfile               Imagen de producción
-```
-
-## Calidad
-
-- 115 pruebas automatizadas que cubren todos los componentes, incluidos el servidor web,
-  la función de generación, su protección de acceso y la integración con los
-  proveedores de modelos.
-- Integración continua en GitHub Actions: análisis estático, pruebas en Python 3.11,
-  3.12 y 3.13, y ejecución de todos los cuadernos con el modelo de embeddings real.
+Hay 115 pruebas que cubren todas las piezas, el servidor web y la función de
+generación. El CI de GitHub Actions pasa ruff, corre las pruebas en Python 3.11, 3.12 y
+3.13 y ejecuta todos los cuadernos con el modelo de embeddings real.
 
 ```bash
 pip install -e ".[all]"
 ruff check . && pytest && pytest --nbmake modulos/
 ```
 
-## Documentación adicional
-
-- [Resumen ejecutivo](docs/resumen-ejecutivo.md): propuesta de valor, casos de uso y
-  modalidades de implantación.
-- [Despliegue](docs/despliegue.md): versión web, Render, Docker, Hugging Face Spaces y
-  configuración.
-- [Puesta en producción](modulos/11-produccion/README.md): arquitectura de referencia,
-  seguridad y costes.
-
-## Autor
-
-**Andrés de la Torre Flores** · [github.com/Andres-DLT](https://github.com/Andres-DLT)
-
 ## Licencia
 
-[MIT](LICENSE). NovaTech y toda su documentación son ficticios y se incluyen
-exclusivamente como caso de estudio.
+[MIT](LICENSE). NovaTech y sus documentos son inventados; solo están como caso de
+ejemplo.
