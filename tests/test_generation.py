@@ -146,9 +146,13 @@ def test_get_llm_openai_compatible_providers(monkeypatch):
     gemini = get_llm("gemini")
     assert isinstance(gemini, OpenAICompatibleLLM)
     assert gemini.model == "gemini-3.8-flash"
+    assert gemini.fallback_models == ("gemini-3.5-flash-lite", "gemini-2.5-flash")
     assert gemini.base_url == "https://generativelanguage.googleapis.com/v1beta/openai"
     assert (gemini.api_key, gemini.label) == ("clave-gemini", "Gemini")
     assert get_llm("gemini:otro-modelo").model == "otro-modelo"
+    assert get_llm("gemini:otro-modelo").fallback_models == ()
+    chain = get_llm("gemini:primero, segundo,tercero")
+    assert (chain.model, chain.fallback_models) == ("primero", ("segundo", "tercero"))
     assert get_llm("openai:modelo-x").base_url == "https://api.openai.com/v1"
     with pytest.raises(ValueError, match="modelo"):
         get_llm("openai")
@@ -235,6 +239,87 @@ def test_openai_compatible_llm_reports_errors(status, payload, message):
             llm.generate("sistema", "pregunta")
     finally:
         close()
+
+
+def _serve_sequence(responses):
+    """Servidor local que responde a cada petición con el siguiente `(código, cuerpo)`."""
+    requested = []
+    pending = list(responses)
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_POST(self):  # noqa: N802
+            body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            requested.append(body["model"])
+            status, payload = pending.pop(0)
+            data = json.dumps(payload).encode()
+            self.send_response(status)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(data)
+
+        def log_message(self, *args):
+            pass
+
+    server = HTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    llm = OpenAICompatibleLLM(
+        model="principal",
+        fallback_models=("respaldo-1", "respaldo-2"),
+        base_url=f"http://127.0.0.1:{server.server_address[1]}/v1",
+        api_key="clave",
+        label="Prueba",
+        retry_delay=0,
+    )
+    return llm, requested, server
+
+
+BUSY = (503, [{"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}}])
+OK = (200, {"choices": [{"finish_reason": "stop", "message": {"content": "Hola [1]"}}]})
+
+
+def test_openai_compatible_llm_retries_and_falls_back_when_busy():
+    llm, requested, server = _serve_sequence([BUSY, BUSY, OK])
+    try:
+        assert llm.generate("sistema", "pregunta") == "Hola [1]"
+    finally:
+        server.shutdown()
+
+    assert requested == ["principal", "principal", "respaldo-1"]
+
+
+def test_openai_compatible_llm_skips_retired_models():
+    retired = (404, {"error": {"message": "model not found"}})
+    llm, requested, server = _serve_sequence([retired, OK])
+    try:
+        assert llm.generate("sistema", "pregunta") == "Hola [1]"
+    finally:
+        server.shutdown()
+
+    assert requested == ["principal", "respaldo-1"]
+
+
+def test_openai_compatible_llm_reports_when_every_model_is_busy():
+    llm, requested, server = _serve_sequence([BUSY] * 4)
+    try:
+        with pytest.raises(LLMError, match="no está disponible en este momento") as error:
+            llm.generate("sistema", "pregunta")
+    finally:
+        server.shutdown()
+
+    assert requested == ["principal", "principal", "respaldo-1", "respaldo-2"]
+    assert "high demand" in str(error.value)
+
+
+def test_openai_compatible_llm_does_not_retry_permanent_errors():
+    invalid_key = (401, {"error": {"message": "API key not valid"}})
+    llm, requested, server = _serve_sequence([invalid_key])
+    try:
+        with pytest.raises(LLMError, match="Error 401 de Prueba: API key not valid"):
+            llm.generate("sistema", "pregunta")
+    finally:
+        server.shutdown()
+
+    assert requested == ["principal"]
 
 
 def test_ollama_llm_reports_connection_errors():
