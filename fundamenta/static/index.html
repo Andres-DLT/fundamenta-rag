@@ -70,6 +70,10 @@
   .badge { display: inline-block; font-size: .75rem; padding: 2px 8px; border-radius: 999px; margin-bottom: 10px; }
   .badge.generative { color: var(--success); border: 1px solid var(--success); }
   .badge.extractive, .badge.none { color: var(--warning); border: 1px solid var(--warning); }
+  .notice {
+    margin: 0 0 12px; padding: 10px 12px; font-size: .9rem; color: var(--warning);
+    background: var(--accent-soft); border-radius: 6px;
+  }
   .cite {
     font: inherit; font-size: .75rem; font-weight: 600; vertical-align: super; line-height: 1;
     padding: 1px 5px; margin: 0 1px; color: var(--accent); background: var(--accent-soft);
@@ -135,6 +139,7 @@
   <section class="card" id="answer-card" hidden>
     <h2>Respuesta</h2>
     <span class="badge" id="mode"></span>
+    <p class="notice" id="notice" hidden></p>
     <div class="answer" id="answer"></div>
   </section>
 
@@ -317,12 +322,15 @@
       const mode = $("mode");
       mode.className = `badge ${data.mode}`;
       mode.textContent = MODES[data.mode] || data.mode;
+      $("notice").textContent = data.notice || "";
+      $("notice").hidden = !data.notice;
       renderAnswer(data.answer);
       renderSources(data.sources);
       $("answer-card").hidden = false;
     } catch (error) {
       $("answer").replaceChildren(Object.assign(document.createElement("span"), { className: "error", textContent: error.message }));
       $("mode").textContent = "";
+      $("notice").hidden = true;
       $("answer-card").hidden = false;
       $("sources-card").hidden = true;
     } finally {

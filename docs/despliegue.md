@@ -83,8 +83,15 @@ ejecutar el flujo *Web* (*Actions > Web > Run workflow*). La página pedirá la
 contraseña y las respuestas pasarán a redactarse con el modelo de lenguaje.
 
 Variables opcionales de la función: `FUNDAMENTA_LLM` (por defecto, el proveedor de la
-clave configurada; por ejemplo `gemini:<modelo>` para usar otro modelo) y
-`FUNDAMENTA_RATE_LIMIT` (preguntas por minuto y visitante, 20 por defecto).
+clave configurada; por ejemplo `gemini:<modelo>` para usar otro modelo, o varios
+separados por comas para fijar los de respaldo) y `FUNDAMENTA_RATE_LIMIT` (preguntas
+por minuto y visitante, 20 por defecto).
+
+Los modelos gratuitos se saturan a veces en los picos de demanda. Con Gemini, la
+función reintenta una vez y después prueba con otros dos modelos del plan gratuito
+(`gemini-3.5-flash-lite` y `gemini-2.5-flash`). Si ninguno responde, la página no
+muestra un error: presenta los fragmentos relevantes con un aviso para volver a
+intentarlo.
 
 Para generar la web en local:
 

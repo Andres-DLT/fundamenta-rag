@@ -14,6 +14,10 @@
 (() => {
   const TRANSFORMERS = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1";
   const PASSWORD_KEY = "fundamenta-password";
+  const UNAVAILABLE =
+    "El servicio de IA no ha podido redactar la respuesta en este momento, normalmente por un " +
+    "pico de demanda. Se muestran los fragmentos más relevantes de la documentación; vuelva a " +
+    "intentarlo en unos segundos.";
 
   let indexPromise;
   let extractorPromise;
@@ -160,11 +164,16 @@
   }
 
   async function callGeneration(index, body) {
-    const response = await fetch(index.generation.url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Fundamenta-Password": password || "" },
-      body: JSON.stringify({ ...body, fingerprint: index.fingerprint }),
-    });
+    let response;
+    try {
+      response = await fetch(index.generation.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Fundamenta-Password": password || "" },
+        body: JSON.stringify({ ...body, fingerprint: index.fingerprint }),
+      });
+    } catch {
+      throw new Error("No se pudo conectar con el servicio. Compruebe la conexión e inténtelo de nuevo.");
+    }
     if (response.status === 401) {
       storePassword(null);
       throw Object.assign(new Error("Contraseña incorrecta"), { unauthorized: true });
@@ -172,9 +181,22 @@
     return response;
   }
 
+  // Si el modelo de lenguaje no responde, la consulta no falla: se muestran los fragmentos
+  function withNotice(question, sources, detail) {
+    console.warn("Fundamenta: generación no disponible.", detail);
+    return { ...extractive(question, sources), notice: UNAVAILABLE };
+  }
+
   async function generate(index, question, ranked, sources) {
-    const response = await callGeneration(index, { question, ids: ranked.map(([i]) => i) });
+    let response;
+    try {
+      response = await callGeneration(index, { question, ids: ranked.map(([i]) => i) });
+    } catch (error) {
+      if (error.unauthorized) throw error;
+      return withNotice(question, sources, error.message);
+    }
     const data = await response.json().catch(() => ({}));
+    if (response.status >= 500) return withNotice(question, sources, data.error);
     if (!response.ok) throw new Error(data.error || "El servicio de generación no está disponible");
     // La función no conoce las puntuaciones de la búsqueda: se toman de los resultados locales
     const scores = new Map(sources.map((source) => [source.number, source.score]));
