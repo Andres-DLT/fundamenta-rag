@@ -5,7 +5,7 @@
  * scripts/build_web.py (index.json). La pregunta se codifica con el mismo modelo E5
  * cuantizado que se usó para los fragmentos, ejecutado con transformers.js.
  *
- * Si el índice indica una función de generación (api/answer.py), se le envían la
+ * Si el índice indica una función de generación (app.py), se le envían la
  * pregunta y los números de los fragmentos recuperados para obtener una respuesta
  * redactada con citas. Sin ella, la respuesta es extractiva, como en el servidor.
  *

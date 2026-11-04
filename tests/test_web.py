@@ -5,7 +5,7 @@ import json
 import threading
 import urllib.error
 import urllib.request
-from http.server import ThreadingHTTPServer
+from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 import numpy as np
 import pytest
@@ -166,19 +166,30 @@ def test_service_reports_provider_errors(chunks):
     assert (status, data["error"]) == (502, "Proveedor no disponible")
 
 
-# --- Función de Vercel (api/answer.py) --------------------------------------------
+# --- Función de Vercel (app.py) ---------------------------------------------------
+
+
+class QuietHandler(WSGIRequestHandler):
+    def log_message(self, *args):
+        pass
 
 
 @pytest.fixture
-def function_url(chunks):
-    spec = importlib.util.spec_from_file_location("answer_function", ROOT / "api" / "answer.py")
+def function_app():
+    spec = importlib.util.spec_from_file_location("vercel_app", ROOT / "app.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    module._service = make_service(chunks)
-    server = ThreadingHTTPServer(("127.0.0.1", 0), module.handler)
+    return module
+
+
+@pytest.fixture
+def function_url(function_app, chunks):
+    function_app._service = make_service(chunks)
+    server = make_server("127.0.0.1", 0, function_app.app, handler_class=QuietHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    yield f"http://127.0.0.1:{server.server_address[1]}/api/answer", module._service
+    yield f"http://127.0.0.1:{server.server_port}", function_app._service
     server.shutdown()
+    server.server_close()
 
 
 def post(url, payload, password="secreta"):
@@ -197,7 +208,7 @@ def post(url, payload, password="secreta"):
 def test_function_answers_over_http(function_url):
     url, service = function_url
 
-    status, headers, body = post(url, ask_payload(service))
+    status, headers, body = post(f"{url}/api/answer", ask_payload(service))
 
     assert status == 200
     assert headers["Access-Control-Allow-Origin"] == "*"
@@ -206,11 +217,28 @@ def test_function_answers_over_http(function_url):
 
 def test_function_handles_preflight_and_errors(function_url):
     url, service = function_url
+    endpoint = f"{url}/api/answer"
 
-    preflight = urllib.request.Request(url, method="OPTIONS")
+    preflight = urllib.request.Request(endpoint, method="OPTIONS")
     with urllib.request.urlopen(preflight) as response:
         assert response.status == 204
         assert "X-Fundamenta-Password" in response.headers["Access-Control-Allow-Headers"]
 
-    assert post(url, ask_payload(service), password="mala")[0] == 401
-    assert post(url, [1, 2])[0] == 400
+    assert post(endpoint, ask_payload(service), password="mala")[0] == 401
+    assert post(endpoint, [1, 2])[0] == 400
+    assert post(f"{url}/otra", ask_payload(service))[0] == 404
+    with pytest.raises(urllib.error.HTTPError) as error:
+        urllib.request.urlopen(endpoint)
+    assert error.value.code == 405
+
+
+def test_function_reports_missing_configuration(function_app, monkeypatch):
+    monkeypatch.delenv("FUNDAMENTA_PASSWORD", raising=False)
+    monkeypatch.setenv("FUNDAMENTA_LLM", "none")
+    function_app._service = None
+    environ = {"PATH_INFO": "/api/answer", "REQUEST_METHOD": "POST"}
+
+    status, data = function_app.dispatch(environ)
+
+    assert status == 500
+    assert "FUNDAMENTA_PASSWORD" in data["error"]
