@@ -137,7 +137,7 @@ flowchart LR
 | Recuperación híbrida | 06 | [`retriever.py`](fundamenta/retriever.py) |
 | Generación con citas | 07 | [`generation.py`](fundamenta/generation.py), [`llm.py`](fundamenta/llm.py) |
 | Pipeline, CLI y web | 08 | [`pipeline.py`](fundamenta/pipeline.py), [`cli.py`](fundamenta/cli.py), [`server.py`](fundamenta/server.py) |
-| Versión web sin servidor | | [`web.py`](fundamenta/web.py), [`engine.js`](web/engine.js), [`api/answer.py`](api/answer.py) |
+| Versión web sin servidor | | [`web.py`](fundamenta/web.py), [`engine.js`](web/engine.js), [`app.py`](app.py) |
 | Evaluación | 09 | [`evaluation.py`](fundamenta/evaluation.py) |
 | Reescritura de consultas | 10 | [`query.py`](fundamenta/query.py) |
 

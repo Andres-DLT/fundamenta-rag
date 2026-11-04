@@ -5,7 +5,7 @@ Fundamenta puede publicarse como una página estática más una función sin ser
 - La búsqueda se ejecuta en el navegador de cada visitante (`web/engine.js`). Este
   módulo exporta todo lo que necesita en un único índice JSON: los fragmentos, las
   estadísticas de BM25 y los vectores calculados con el modelo E5 cuantizado.
-- La generación con un LLM se ejecuta en una función sin servidor (`api/answer.py`). El
+- La generación con un LLM se ejecuta en una función sin servidor (`app.py`). El
   navegador solo le envía la pregunta y los números de los fragmentos recuperados; la
   función reconstruye los fragmentos a partir de los mismos documentos y responde con
   el mismo `AnswerGenerator` que el servidor. Así la clave del proveedor nunca llega al

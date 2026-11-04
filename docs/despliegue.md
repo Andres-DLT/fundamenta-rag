@@ -42,7 +42,7 @@ función sin servidor que usa el mismo `AnswerGenerator` que el servidor:
 
 ```mermaid
 flowchart LR
-    N[Navegador<br/>búsqueda híbrida] -- pregunta + números de fragmento --> F[Función en Vercel<br/>api/answer.py]
+    N[Navegador<br/>búsqueda híbrida] -- pregunta + números de fragmento --> F[Función en Vercel<br/>app.py]
     F -- fragmentos numerados --> C[LLM<br/>Claude · Gemini · OpenAI]
     C --> F -- respuesta con citas --> N
 ```

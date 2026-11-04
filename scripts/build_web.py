@@ -11,7 +11,7 @@ Uso:
     python scripts/build_web.py --out site --generation-url https://<proyecto>.vercel.app/api/answer
 
 Sin `--generation-url`, la página responde en modo extractivo. Con ella, envía la
-pregunta y los fragmentos recuperados a la función de generación (api/answer.py), que
+pregunta y los fragmentos recuperados a la función de generación (app.py), que
 redacta la respuesta con Claude y exige la contraseña de acceso.
 """
 
