@@ -12,7 +12,8 @@ Uso:
 
 Sin `--generation-url`, la página responde en modo extractivo. Con ella, envía la
 pregunta y los fragmentos recuperados a la función de generación (app.py), que
-redacta la respuesta con Claude y exige la contraseña de acceso.
+redacta la respuesta con el modelo de lenguaje configurado (Claude, Gemini...) y exige
+la contraseña de acceso.
 """
 
 from __future__ import annotations

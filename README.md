@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Andres-DLT/fundamenta-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/Andres-DLT/fundamenta-rag/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-[![Licencia: MIT](https://img.shields.io/badge/licencia-MIT-green)](LICENSE)
+[![Licencia: propietaria](https://img.shields.io/badge/licencia-propietaria-lightgrey)](LICENSE)
 
 Un motor RAG (*Retrieval-Augmented Generation*) escrito desde cero en Python, sin
 frameworks. Le das una carpeta de documentos (PDF, Markdown o texto) y responde
@@ -158,7 +158,7 @@ flowchart LR
 
 ## Pruebas
 
-Hay 115 pruebas que cubren todas las piezas, el servidor web y la función de
+Hay 120 pruebas que cubren todas las piezas, el servidor web y la función de
 generación. El CI de GitHub Actions pasa ruff, corre las pruebas en Python 3.11, 3.12 y
 3.13 y ejecuta todos los cuadernos con el modelo de embeddings real.
 
@@ -169,5 +169,6 @@ ruff check . && pytest && pytest --nbmake modulos/
 
 ## Licencia
 
-[MIT](LICENSE). NovaTech y sus documentos son inventados; solo están como caso de
-ejemplo.
+Código propietario, todos los derechos reservados: puede consultarse para evaluarlo,
+pero cualquier otro uso requiere una licencia del autor (ver [LICENSE](LICENSE)).
+NovaTech y sus documentos son inventados; solo están como caso de ejemplo.

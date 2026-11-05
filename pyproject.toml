@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fundamenta"
-version = "1.1.0"
+version = "1.2.0"
 description = "Motor RAG construido desde cero: respuestas fundamentadas en la documentación de su organización, con citas verificables."
 readme = "README.md"
-license = "MIT"
+license = "LicenseRef-Proprietary"
 requires-python = ">=3.11"
 authors = [{ name = "Andrés de la Torre Flores" }]
 keywords = ["rag", "llm", "embeddings", "bm25", "retrieval", "knowledge-base", "search"]
