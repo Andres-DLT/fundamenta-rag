@@ -1,21 +1,33 @@
-MIT License
+Copyright (c) 2026 Andrés de la Torre Flores. Todos los derechos reservados.
 
-Copyright (c) 2026 Andrés de la Torre Flores
+Este repositorio, incluidos su código fuente, documentación, programa técnico y
+materiales asociados (el «Software»), es propiedad de Andrés de la Torre Flores.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Se permite consultar el Software en este repositorio con el fin de evaluarlo. No se
+concede ninguna otra licencia ni derecho, ni de forma expresa ni implícita. Salvo
+autorización previa y por escrito del titular, no está permitido:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+- usar el Software, en todo o en parte, en entornos de producción o con fines
+  comerciales;
+- copiar, modificar, adaptar o crear obras derivadas del Software;
+- distribuir, sublicenciar, vender o poner el Software a disposición de terceros.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Las condiciones de servicio de GitHub permiten a sus usuarios ver y bifurcar (fork)
+los repositorios públicos dentro de GitHub. Esa posibilidad no concede ningún otro
+derecho sobre el Software.
+
+Para obtener una licencia de uso, contacte con el titular a través de
+https://github.com/Andres-DLT.
+
+EL SOFTWARE SE PROPORCIONA «TAL CUAL», SIN GARANTÍA DE NINGÚN TIPO, EXPRESA O
+IMPLÍCITA. EN NINGÚN CASO EL TITULAR SERÁ RESPONSABLE DE NINGUNA RECLAMACIÓN, DAÑO
+U OTRA RESPONSABILIDAD DERIVADA DEL SOFTWARE O DE SU USO.
+
+-------------------------------------------------------------------------------
+
+Copyright (c) 2026 Andrés de la Torre Flores. All rights reserved.
+
+This software and its documentation are proprietary. You may view them in this
+repository for evaluation purposes only. No other license or right is granted. Any
+use, copying, modification, distribution or sale requires the prior written
+permission of the copyright holder. Contact: https://github.com/Andres-DLT.
